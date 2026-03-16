@@ -1,0 +1,140 @@
+[
+    {
+        "type_document": "SIRET",
+        "emetteur": {
+            "siret": "48006563000018",
+            "nom": "BOULANGERIE DAVID",
+            "adresse": "10 RUE DU MAL DE LATTRE DE TASSIGNY 68730 BLOTZHEIM"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "siret",
+        "metadonnees": {
+            "code_ape": "85.85K",
+            "date_immatriculation": "25/01/2025",
+            "activite_principale": "La possibilité d'évoluer autrement"
+        }
+    },
+    {
+        "type_document": "SIRET",
+        "emetteur": {
+            "siret": "44284394200115",
+            "nom": "LES BOULANGERIES WATRIN",
+            "adresse": "ZAC BELLE FONTAINE 57185 CLOUANGE"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "siret",
+        "metadonnees": {
+            "code_ape": "27.84G",
+            "date_immatriculation": "19/02/2023",
+            "activite_principale": "Le plaisir d'évoluer avant-tout"
+        }
+    },
+    {
+        "type_document": "URSSAF",
+        "emetteur": {
+            "siret": "43508926300014",
+            "nom": "BOULANGERIE GHISONI",
+            "adresse": "LOT RAZZETTA CHE DE CARDO 20200 BASTIA"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "urssaf",
+        "metadonnees": {
+            "code_securite": "ERXUIAC79IK1SJAW",
+            "compte_urssaf": "302 8851878",
+            "fin_validite": "12/09/2026"
+        }
+    },
+    {
+        "type_document": "URSSAF",
+        "emetteur": {
+            "siret": "83533411100019",
+            "nom": "LA BOULANGERIE DE PIERRE (LA BOULANGERIE DE PIERRE)",
+            "adresse": "CHEMIN DU BATTOIR 38440 SAINT-JEAN-DE-BOURNAY"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "urssaf",
+        "metadonnees": {
+            "code_securite": "JJR7SY4USX1MNV8A",
+            "compte_urssaf": "779 3570505",
+            "fin_validite": "12/09/2026"
+        }
+    },
+    {
+        "type_document": "KBIS",
+        "emetteur": {
+            "siret": "52344029500013",
+            "nom": "MA BOULANGERIE",
+            "adresse": "44 RUE ARMAND CARREL 76000 ROUEN"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "kbis",
+        "metadonnees": {
+            "greffe": "Tribunal de Commerce de GONCALVESVILLE",
+            "numero_gestion": "2026 B 52264",
+            "forme_juridique": "SASU",
+            "capital": "1000 Euros",
+            "dirigeant_nom": "RÉMY",
+            "dirigeant_prenom": "Margaux",
+            "dirigeant_naissance": "08/07/1993"
+        }
+    },
+    {
+        "type_document": "KBIS",
+        "emetteur": {
+            "siret": "43508926300014",
+            "nom": "BOULANGERIE GHISONI",
+            "adresse": "LOT RAZZETTA CHE DE CARDO 20200 BASTIA"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "kbis",
+        "metadonnees": {
+            "greffe": "Tribunal de Commerce de LEGENDRE-SUR-DUMONT",
+            "numero_gestion": "2026 B 41224",
+            "forme_juridique": "SARL",
+            "capital": "10000 Euros",
+            "dirigeant_nom": "PASCAL",
+            "dirigeant_prenom": "Maurice",
+            "dirigeant_naissance": "10/10/1995"
+        }
+    },
+    {
+        "type_document": "RIB",
+        "emetteur": {
+            "siret": "78947258600013",
+            "nom": "LES BOULANGERIES DE L'EST",
+            "adresse": "ZAC BELLE FONTAINE 57185 CLOUANGE"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "rib",
+        "metadonnees": {
+            "banque": "Pichon",
+            "code_banque": "28082",
+            "code_guichet": "38899",
+            "numero_compte": "CT9SO0Z1XOM",
+            "cle_rib": "44",
+            "iban": "FR21 5652 0959 5603 6669 0434 826",
+            "bic": "GOFSFRY13G1",
+            "domiciliation": "21, chemin de Barthelemy, 54972 Baron"
+        }
+    },
+    {
+        "type_document": "RIB",
+        "emetteur": {
+            "siret": "40305211102616",
+            "nom": "BOULANGERIES PAUL",
+            "adresse": "BATIMENT D.E 344 AVENUE DE LA MARNE 59700 MARCQ-EN-BARŒUL"
+        },
+        "date_edition": "16/03/2026",
+        "label_classification": "rib",
+        "metadonnees": {
+            "banque": "Lefebvre",
+            "code_banque": "21849",
+            "code_guichet": "12162",
+            "numero_compte": "46230S5QFF7",
+            "cle_rib": "10",
+            "iban": "FR58 5160 8681 0038 6626 4767 577",
+            "bic": "RLICFR80",
+            "domiciliation": "59, avenue de Perrot, 61869 Voisin-la-Forêt"
+        }
+    }
+]

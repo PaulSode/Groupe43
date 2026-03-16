@@ -1,0 +1,52 @@
+[
+    {
+        "siret": "47845579305205",
+        "nom": "BOULANGERIES BG (B B G)",
+        "adresse": "615 AVENUE DE LA CHAFFINE 13160 CHATEAURENARD"
+    },
+    {
+        "siret": "40305211102616",
+        "nom": "BOULANGERIES PAUL",
+        "adresse": "BATIMENT D.E 344 AVENUE DE LA MARNE 59700 MARCQ-EN-BARŒUL"
+    },
+    {
+        "siret": "63850296300082",
+        "nom": "BOULANGERIE NEUHAUSER",
+        "adresse": "18 AVENUE FOCH 57730 FOLSCHVILLER"
+    },
+    {
+        "siret": "44284394200115",
+        "nom": "LES BOULANGERIES WATRIN",
+        "adresse": "ZAC BELLE FONTAINE 57185 CLOUANGE"
+    },
+    {
+        "siret": "39440693800149",
+        "nom": "BOULANGERIE AURELIA",
+        "adresse": "519 AVENUE VICTOR HUGO 83600 FREJUS"
+    },
+    {
+        "siret": "48006563000018",
+        "nom": "BOULANGERIE DAVID",
+        "adresse": "10 RUE DU MAL DE LATTRE DE TASSIGNY 68730 BLOTZHEIM"
+    },
+    {
+        "siret": "83533411100019",
+        "nom": "LA BOULANGERIE DE PIERRE (LA BOULANGERIE DE PIERRE)",
+        "adresse": "CHEMIN DU BATTOIR 38440 SAINT-JEAN-DE-BOURNAY"
+    },
+    {
+        "siret": "78947258600013",
+        "nom": "LES BOULANGERIES DE L'EST",
+        "adresse": "ZAC BELLE FONTAINE 57185 CLOUANGE"
+    },
+    {
+        "siret": "43508926300014",
+        "nom": "BOULANGERIE GHISONI",
+        "adresse": "LOT RAZZETTA CHE DE CARDO 20200 BASTIA"
+    },
+    {
+        "siret": "52344029500013",
+        "nom": "MA BOULANGERIE",
+        "adresse": "44 RUE ARMAND CARREL 76000 ROUEN"
+    }
+]

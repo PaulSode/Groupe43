@@ -1,0 +1,283 @@
+[
+    {
+        "metadonnees": {
+            "type_document": "DEVIS",
+            "numero_devis": "D-2026-00001",
+            "date_emission": "2025-12-02",
+            "duree_validite_jours": 90
+        },
+        "emetteur": {
+            "raison_sociale": "BOULANGERIE NEUHAUSER",
+            "adresse": "18 AVENUE FOCH 57730 FOLSCHVILLER",
+            "siret": "63850296300082"
+        },
+        "client": {
+            "nom": "Dupont",
+            "prenom": "Paul",
+            "adresse": "77, chemin de Schneider, 90322 Richard",
+            "siret_societe": null
+        },
+        "execution": {
+            "date_debut_estimee": "2025-12-17",
+            "duree_estimee_jours": 48
+        },
+        "transactions": [
+            {
+                "designation": "La liberté d'avancer autrement",
+                "quantite": 40,
+                "prix_unitaire_ht": 1912.5,
+                "sous_total_ht": 76500.0
+            },
+            {
+                "designation": "Le confort de rouler à la pointe",
+                "quantite": 93,
+                "prix_unitaire_ht": 599.25,
+                "sous_total_ht": 55730.25
+            }
+        ],
+        "finances": {
+            "total_ht": 132230.25,
+            "taux_tva": 0.2,
+            "montant_tva": 26446.05,
+            "total_ttc": 158676.3
+        },
+        "validation": {
+            "mention_requise": "Bon pour accord",
+            "est_signe": true,
+            "date_signature": "2025-12-19"
+        },
+        "label_classification": "valide"
+    },
+    {
+        "metadonnees": {
+            "type_document": "DEVIS",
+            "numero_devis": "D-2026-00002",
+            "date_emission": "2025-09-01",
+            "duree_validite_jours": 30
+        },
+        "emetteur": {
+            "raison_sociale": "MA BOULANGERIE",
+            "adresse": "44 RUE ARMAND CARREL 76000 ROUEN",
+            "siret": "52344029500013"
+        },
+        "client": {
+            "nom": "Dupond",
+            "prenom": "Olivier",
+            "adresse": "avenue Bernard, 18662 Thomas",
+            "siret_societe": null
+        },
+        "execution": {
+            "date_debut_estimee": "2025-10-09",
+            "duree_estimee_jours": 117
+        },
+        "transactions": [
+            {
+                "designation": "La liberté d'évoluer sans soucis",
+                "quantite": 88,
+                "prix_unitaire_ht": 571.16,
+                "sous_total_ht": 50262.08
+            },
+            {
+                "designation": "La possibilité de rouler à la pointe",
+                "quantite": 71,
+                "prix_unitaire_ht": 2363.97,
+                "sous_total_ht": 167841.87
+            },
+            {
+                "designation": "L'assurance d'évoluer de manière efficace",
+                "quantite": 70,
+                "prix_unitaire_ht": 725.95,
+                "sous_total_ht": 50816.5
+            }
+        ],
+        "finances": {
+            "total_ht": 268920.45,
+            "taux_tva": 0.2,
+            "montant_tva": 53784.09,
+            "total_ttc": 322704.54
+        },
+        "validation": {
+            "mention_requise": "Bon pour accord",
+            "est_signe": true,
+            "date_signature": "2025-09-12"
+        },
+        "label_classification": "valide"
+    },
+    {
+        "metadonnees": {
+            "type_document": "DEVIS",
+            "numero_devis": "D-2026-00003",
+            "date_emission": "2025-11-05",
+            "duree_validite_jours": 30
+        },
+        "emetteur": {
+            "raison_sociale": "BOULANGERIE AURELIA",
+            "adresse": "519 AVENUE VICTOR HUGO 83600 FREJUS",
+            "siret": "39440693800149"
+        },
+        "client": {
+            "nom": "Dupont",
+            "prenom": "Olivier",
+            "adresse": "5, boulevard Lamy, 87715 Diaz",
+            "siret_societe": "39440693800149"
+        },
+        "execution": {
+            "date_debut_estimee": "2025-12-18",
+            "duree_estimee_jours": 5
+        },
+        "transactions": [
+            {
+                "designation": "L'avantage d'atteindre vos buts plus facilement",
+                "quantite": 59,
+                "prix_unitaire_ht": 931.66,
+                "sous_total_ht": 54967.94
+            },
+            {
+                "designation": "Le plaisir d'avancer en toute tranquilité",
+                "quantite": 22,
+                "prix_unitaire_ht": 741.77,
+                "sous_total_ht": 16318.94
+            }
+        ],
+        "finances": {
+            "total_ht": 71286.88,
+            "taux_tva": 0.2,
+            "montant_tva": 14257.38,
+            "total_ttc": 85544.26
+        },
+        "validation": {
+            "mention_requise": "Bon pour accord",
+            "est_signe": true,
+            "date_signature": "2025-11-30"
+        },
+        "label_classification": "valide"
+    },
+    {
+        "metadonnees": {
+            "type_document": "DEVIS",
+            "numero_devis": "D-2026-00004",
+            "date_emission": "2025-05-30",
+            "duree_validite_jours": 15
+        },
+        "emetteur": {
+            "raison_sociale": "BOULANGERIES BG (B B G)",
+            "adresse": "615 AVENUE DE LA CHAFFINE 13160 CHATEAURENARD",
+            "siret": "47845579305205"
+        },
+        "client": {
+            "nom": "Dupont",
+            "prenom": "Olivier",
+            "adresse": "avenue Riou, 69395 Foucher",
+            "siret_societe": "43508926300014"
+        },
+        "execution": {
+            "date_debut_estimee": "2025-06-23",
+            "duree_estimee_jours": 56
+        },
+        "transactions": [
+            {
+                "designation": "L'assurance d'avancer naturellement",
+                "quantite": 80,
+                "prix_unitaire_ht": 30.97,
+                "sous_total_ht": 2477.6
+            },
+            {
+                "designation": "L'art de louer de manière efficace",
+                "quantite": 81,
+                "prix_unitaire_ht": 2084.51,
+                "sous_total_ht": 168845.31
+            },
+            {
+                "designation": "Le droit de louer à l'état pur",
+                "quantite": 73,
+                "prix_unitaire_ht": 1844.94,
+                "sous_total_ht": 134680.62
+            }
+        ],
+        "finances": {
+            "total_ht": 306003.53,
+            "taux_tva": 0.2,
+            "montant_tva": 61200.71,
+            "total_ttc": 367204.24
+        },
+        "validation": {
+            "mention_requise": "Bon pour accord",
+            "est_signe": true,
+            "date_signature": "2025-06-11"
+        },
+        "label_classification": "valide"
+    },
+    {
+        "metadonnees": {
+            "type_document": "DEVIS",
+            "numero_devis": "D-2026-00005",
+            "date_emission": "2025-10-18",
+            "duree_validite_jours": 30
+        },
+        "emetteur": {
+            "raison_sociale": "BOULANGERIES PAUL",
+            "adresse": "BATIMENT D.E 344 AVENUE DE LA MARNE 59700 MARCQ-EN-BARŒUL",
+            "siret": "263181690897"
+        },
+        "client": {
+            "nom": "Dupond",
+            "prenom": "Paul",
+            "adresse": "43, rue Richard, 63742 Sainte Emmanuelle",
+            "siret_societe": "63850296300082"
+        },
+        "execution": {
+            "date_debut_estimee": "2025-11-14",
+            "duree_estimee_jours": 8
+        },
+        "transactions": [
+            {
+                "designation": "Le plaisir de changer naturellement",
+                "quantite": 8,
+                "prix_unitaire_ht": 1478.89,
+                "sous_total_ht": 11831.12
+            },
+            {
+                "designation": "La possibilité d'évoluer naturellement",
+                "quantite": 7,
+                "prix_unitaire_ht": 298.16,
+                "sous_total_ht": 2087.12
+            },
+            {
+                "designation": "L'art de changer à sa source",
+                "quantite": 32,
+                "prix_unitaire_ht": 564.01,
+                "sous_total_ht": 18048.32
+            },
+            {
+                "designation": "L'art d'avancer en toute tranquilité",
+                "quantite": 29,
+                "prix_unitaire_ht": 457.16,
+                "sous_total_ht": 13257.64
+            },
+            {
+                "designation": "L'avantage d'innover à la pointe",
+                "quantite": 15,
+                "prix_unitaire_ht": 1567.66,
+                "sous_total_ht": 23514.9
+            },
+            {
+                "designation": "Le confort de concrétiser vos projets plus facilement",
+                "quantite": 71,
+                "prix_unitaire_ht": 1014.59,
+                "sous_total_ht": 72035.89
+            }
+        ],
+        "finances": {
+            "total_ht": 140774.99,
+            "taux_tva": 0.2,
+            "montant_tva": 28155.0,
+            "total_ttc": 168929.99
+        },
+        "validation": {
+            "mention_requise": "Bon pour accord",
+            "est_signe": true,
+            "date_signature": "2025-10-29"
+        },
+        "label_classification": "anomalie_siret"
+    }
+]
