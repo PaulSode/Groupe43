@@ -2,51 +2,289 @@
     {
         "siret": "47845579305205",
         "nom": "BOULANGERIES BG (B B G)",
-        "adresse": "615 AVENUE DE LA CHAFFINE 13160 CHATEAURENARD"
+        "adresse": "615 AVENUE DE LA CHAFFINE 13160 CHATEAURENARD",
+        "code_ape": "10.71C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2004-08-25"
     },
     {
         "siret": "40305211102616",
         "nom": "BOULANGERIES PAUL",
-        "adresse": "BATIMENT D.E 344 AVENUE DE LA MARNE 59700 MARCQ-EN-BARŒUL"
+        "adresse": "BATIMENT D.E 344 AVENUE DE LA MARNE 59700 MARCQ-EN-BARŒUL",
+        "code_ape": "10.71A",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1995-12-07"
     },
     {
         "siret": "63850296300082",
         "nom": "BOULANGERIE NEUHAUSER",
-        "adresse": "18 AVENUE FOCH 57730 FOLSCHVILLER"
+        "adresse": "18 AVENUE FOCH 57730 FOLSCHVILLER",
+        "code_ape": "10.71A",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1963-01-01"
     },
     {
         "siret": "44284394200115",
         "nom": "LES BOULANGERIES WATRIN",
-        "adresse": "ZAC BELLE FONTAINE 57185 CLOUANGE"
+        "adresse": "ZAC BELLE FONTAINE 57185 CLOUANGE",
+        "code_ape": "10.71C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2002-02-01"
     },
     {
         "siret": "39440693800149",
         "nom": "BOULANGERIE AURELIA",
-        "adresse": "519 AVENUE VICTOR HUGO 83600 FREJUS"
+        "adresse": "519 AVENUE VICTOR HUGO 83600 FREJUS",
+        "code_ape": "10.71C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1994-04-01"
     },
     {
         "siret": "48006563000018",
         "nom": "BOULANGERIE DAVID",
-        "adresse": "10 RUE DU MAL DE LATTRE DE TASSIGNY 68730 BLOTZHEIM"
+        "adresse": "10 RUE DU MAL DE LATTRE DE TASSIGNY 68730 BLOTZHEIM",
+        "code_ape": "47.24Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2004-12-22"
     },
     {
-        "siret": "83533411100019",
-        "nom": "LA BOULANGERIE DE PIERRE (LA BOULANGERIE DE PIERRE)",
-        "adresse": "CHEMIN DU BATTOIR 38440 SAINT-JEAN-DE-BOURNAY"
+        "siret": "78925139400027",
+        "nom": "CONNECT (CONNECT) (INFORMATIQUE)",
+        "adresse": "215 AVENUE DU QUERCY 82200 MALAUSE",
+        "code_ape": "62.02A",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2012-12-01"
     },
     {
-        "siret": "78947258600013",
-        "nom": "LES BOULANGERIES DE L'EST",
-        "adresse": "ZAC BELLE FONTAINE 57185 CLOUANGE"
+        "siret": "37757464500018",
+        "nom": "INFORMATIQUE",
+        "adresse": "4 TRAVERSE DU BERTEUIL 84600 VALREAS",
+        "code_ape": "72.3Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1990-02-23"
     },
     {
-        "siret": "43508926300014",
-        "nom": "BOULANGERIE GHISONI",
-        "adresse": "LOT RAZZETTA CHE DE CARDO 20200 BASTIA"
+        "siret": "31728838900529",
+        "nom": "FIDUCIAL INFORMATIQUE",
+        "adresse": "41 RUE DU CAPITAINE GUYNEMER 92400 COURBEVOIE",
+        "code_ape": "62.02A",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1979-01-01"
     },
     {
-        "siret": "52344029500013",
-        "nom": "MA BOULANGERIE",
-        "adresse": "44 RUE ARMAND CARREL 76000 ROUEN"
+        "siret": "31500094300862",
+        "nom": "SOCIETE POUR L'INFORMATIQUE INDUSTRIELLE (SII)",
+        "adresse": "8 RUE DES PIROGUES DE BERCY 75012 PARIS",
+        "code_ape": "62.02A",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1979-01-01"
+    },
+    {
+        "siret": "83417359300015",
+        "nom": "DELORME INFORMATIQUE",
+        "adresse": "13 PLACE BOISLANDRY 61300 L'AIGLE",
+        "code_ape": "47.41Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2017-12-19"
+    },
+    {
+        "siret": "39239852500064",
+        "nom": "IRIS INFORMATIQUE",
+        "adresse": "PARC DES INDUSTRIES ARTOIS FLANDRES 115 RUE DE LISBONNE 62138 DOUVRIN",
+        "code_ape": "62.09Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1993-09-01"
+    },
+    {
+        "siret": "66202519676665",
+        "nom": "ELIOR RESTAURATION FRANCE (ELIOR RESTAURATION ENSEIGNEMENT - ELIOR RESTAURATION SANTE)",
+        "adresse": "51 CHEMIN DES MECHES 94000 CRETEIL",
+        "code_ape": "56.29B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1966-01-01"
+    },
+    {
+        "siret": "47718101000729",
+        "nom": "API RESTAURATION",
+        "adresse": "384 RUE DU GENERAL DE GAULLE 59370 MONS-EN-BARŒUL",
+        "code_ape": "56.29A",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1985-09-27"
+    },
+    {
+        "siret": "31247826600223",
+        "nom": "L'ALSACIENNE DE RESTAURATION",
+        "adresse": "BP 126 2 RUE EVARISTE GALOIS 67300 SCHILTIGHEIM",
+        "code_ape": "56.29B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1977-03-07"
+    },
+    {
+        "siret": "35144208206081",
+        "nom": "NEWREST RESTAURATION",
+        "adresse": "8 ALLEE HENRY POTEZ 31700 BLAGNAC",
+        "code_ape": "56.29B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1989-09-01"
+    },
+    {
+        "siret": "43395769300503",
+        "nom": "SANTE RESTAURATION SERVICES (ANTHEMIS)",
+        "adresse": "14 RUE DES GAUDINES 78100 SAINT-GERMAIN-EN-LAYE",
+        "code_ape": "56.29B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2000-12-01"
+    },
+    {
+        "siret": "51497605900014",
+        "nom": "RESTAURATION",
+        "adresse": "5 AV GEORGES CLEMENCEAU 83250 LA LONDE-LES-MAURES",
+        "code_ape": "56.10A",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2009-09-01"
+    },
+    {
+        "siret": "95207263500016",
+        "nom": "TRANSPORT",
+        "adresse": "13 PASSAGE CHATEL PLACE JEAN JAURES 76320 CAUDEBEC-LES-ELBEUF",
+        "code_ape": "49.41B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2023-04-25"
+    },
+    {
+        "siret": "99103427300011",
+        "nom": "TRANSPORT",
+        "adresse": "81 AVENUE DE STALINGRAD 13200 ARLES",
+        "code_ape": "49.41B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2025-09-05"
+    },
+    {
+        "siret": "76980020201507",
+        "nom": "HEPPNER SOCIETE DE TRANSPORTS",
+        "adresse": "6 RUE DES CINQUANTE 67720 HŒRDT",
+        "code_ape": "52.29B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1969-01-18"
+    },
+    {
+        "siret": "79011730300012",
+        "nom": "TRANSPORT ET VALORISATION",
+        "adresse": "7 RUE DU DOCTEUR LANCEREAUX 75008 PARIS",
+        "code_ape": "49.41B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2012-12-17"
+    },
+    {
+        "siret": "77566343801906",
+        "nom": "REGIE AUTONOME DES TRANSPORTS PARISIENS (RATP)",
+        "adresse": "54 QUAI DE LA RAPEE 75012 PARIS",
+        "code_ape": "49.31Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1900-01-01"
+    },
+    {
+        "siret": "44461925802482",
+        "nom": "RTE RESEAU DE TRANSPORT D ELECTRICITE",
+        "adresse": "IMMEUBLE WINDOW 7 PLACE DU DOME 92800 PUTEAUX",
+        "code_ape": "35.12Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2002-12-19"
+    },
+    {
+        "siret": "90099433600015",
+        "nom": "MACONNERIE",
+        "adresse": "119 CHEMIN DU COTEAU 26770 TAULIGNAN",
+        "code_ape": "43.99C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2021-06-01"
+    },
+    {
+        "siret": "75034698300018",
+        "nom": "ANTHONY MACONNERIE",
+        "adresse": "2 IMP DES GALETS 85100 LES SABLES D'OLONNE",
+        "code_ape": "73.11Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2012-03-15"
+    },
+    {
+        "siret": "49213717900015",
+        "nom": "J L MACONNERIE",
+        "adresse": "CHALAMONT 21 ROUTE DU BARRAGE 69170 TARARE",
+        "code_ape": "43.99C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2006-10-01"
+    },
+    {
+        "siret": "53152157300026",
+        "nom": "FILLON MACONNERIE",
+        "adresse": "LA CARRIERE 79420 SAINT-LIN",
+        "code_ape": "43.99C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2011-04-01"
+    },
+    {
+        "siret": "37834293500020",
+        "nom": "YVES MACONNERIE (NES SERVICES)",
+        "adresse": "3 RUE DE LA FORET 85150 LES ACHARDS",
+        "code_ape": "43.32C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "1990-04-20"
+    },
+    {
+        "siret": "49162968900010",
+        "nom": "MACONNERIE ANDRAC",
+        "adresse": "LD LA CROIX 47290 CANCON",
+        "code_ape": "43.99C",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2006-10-01"
+    },
+    {
+        "siret": "97816217000010",
+        "nom": "CONSEIL",
+        "adresse": "54 T RUE DU MAREQUAIX 59152 CHERENG",
+        "code_ape": "70.22Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2023-07-27"
+    },
+    {
+        "siret": "49152068000043",
+        "nom": "CONSEIL (CONSEIL PLUS)",
+        "adresse": "60 AVENUE DE NICE 06800 CAGNES-SUR-MER",
+        "code_ape": "70.22Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2006-09-01"
+    },
+    {
+        "siret": "88424110000012",
+        "nom": "CONSEIL",
+        "adresse": "1 BOULEVARD DU DOCTEUR MOURRUT 34500 BEZIERS",
+        "code_ape": "68.20B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2020-05-02"
+    },
+    {
+        "siret": "81137562500035",
+        "nom": "CONSEIL",
+        "adresse": "13 RUE DU MOLLARD 42400 SAINT-CHAMOND",
+        "code_ape": "64.20Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2015-05-07"
+    },
+    {
+        "siret": "84981728300039",
+        "nom": "CONSEIL",
+        "adresse": "17 RUE CONSEIL 29200 BREST",
+        "code_ape": "68.20B",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2019-04-02"
+    },
+    {
+        "siret": "94950541600014",
+        "nom": "L'ECHO-VILLAGE GROUPE (L'ECHO-VILLAGE GROUPE) (CONSEIL)",
+        "adresse": "2 CHEMIN DE NEUVILLE 59211 SANTES",
+        "code_ape": "70.22Z",
+        "activite_principale": "Activité non spécifiée",
+        "date_immatriculation": "2023-02-15"
     }
 ]

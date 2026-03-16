@@ -1,2 +1,5 @@
 venv
 .env
+/dataset/admin_pdf
+/dataset/devis_pdf
+/dataset/factures_pdf

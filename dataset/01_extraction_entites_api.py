@@ -1,40 +1,49 @@
 import requests
 import sys
 import json
+import time
 
-def extraire_donnees_api():
-    url = "https://recherche-entreprises.api.gouv.fr/search?q=boulangerie&per_page=10"
-    
-    try:
-        reponse = requests.get(url, timeout=10)
-        reponse.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"Échec critique de l'appel API : {e}")
-        sys.exit(1)
-        
-    donnees = reponse.json()
-    entites = []
-    
-    for entreprise in donnees.get("results", []):
-        siege = entreprise.get("siege", {})
-        siret = siege.get("siret")
-        nom = entreprise.get("nom_complet", "Nom Inconnu")
-        adresse = siege.get("adresse", "Adresse Inconnue")
-        
-        if siret:
-            entites.append({
-                "siret": siret, 
-                "nom": nom, 
-                "adresse": adresse
-            })
+def extraire_donnees_api_diversifiees():
+    secteurs = ["boulangerie", "informatique", "restauration", "transport", "maconnerie", "conseil"]
+    resultats_par_secteur = 6
+    entites_globales = []
+    sirets_deja_extraits = set()
+
+    for domaine in secteurs:
+        url = f"https://recherche-entreprises.api.gouv.fr/search?q={domaine}&per_page={resultats_par_secteur}"
+        try:
+            reponse = requests.get(url, timeout=10)
+            reponse.raise_for_status()
+            time.sleep(0.2) 
+            donnees = reponse.json()
             
-    return entites
+            for ent in donnees.get("results", []):
+                siege = ent.get("siege", {})
+                siret = siege.get("siret")
+                
+                if siret and siret not in sirets_deja_extraits:
+                    entites_globales.append({
+                        "siret": siret, 
+                        "nom": ent.get("nom_complet", "Nom Inconnu"), 
+                        "adresse": siege.get("adresse", "Adresse Inconnue"),
+                        "code_ape": ent.get("activite_principale", "99.99Z"),
+                        "activite_principale": ent.get("activite_principale_libelle", "Activité non spécifiée"),
+                        "date_immatriculation": ent.get("date_creation", "2020-01-01")
+                    })
+                    sirets_deja_extraits.add(siret)
+        except Exception as e:
+            print(f"Erreur sur le secteur {domaine}: {e}")
+            continue
+            
+    return entites_globales
 
-entites_extraites = extraire_donnees_api()
+# --- CORRECTION DE L'APPEL ---
+# On stocke le résultat de la fonction dans une variable locale au script
+resultat_final = extraire_donnees_api_diversifiees()
 
 with open("entites_reference.json", "w", encoding="utf-8") as f:
-    json.dump(entites_extraites, f, indent=4, ensure_ascii=False)
+    json.dump(resultat_final, f, indent=4, ensure_ascii=False)
 
-print(f"Extraction terminée : {len(entites_extraites)} entités sauvegardées.")
-
-# ['47845579305205', '40305211102616', '63850296300082', '44284394200115', '39440693800149', '48006563000018', '83533411100019', '78947258600013', '43508926300014', '52344029500013']
+print("-" * 30)
+# Utilisation de la variable stockée pour éviter le NameError
+print(f"Extraction terminée : {len(resultat_final)} entités uniques sauvegardées.")

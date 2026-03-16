@@ -6,12 +6,18 @@ from faker import Faker
 
 fake = Faker('fr_FR')
 
+# ======================================================
+# MODIFIER CETTE VARIABLE POUR CHANGER LE NOMBRE DE DOCUMENTS PAR TYPE
+# Exemple : 10 générera 10 SIRET, 10 URSSAF, 10 KBIS et 10 RIB (40 au total)
+NOMBRE_PAR_TYPE = 10 
+# ======================================================
+
 def charger_entites_reference(chemin="entites_reference.json"):
     try:
         with open(chemin, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        raise RuntimeError("Fichier entites_reference.json introuvable.")
+        raise RuntimeError("Fichier entites_reference.json introuvable. Exécuter le script 01 au préalable.")
 
 def extraire_entite(pool_entites):
     return random.choice(pool_entites).copy()
@@ -75,8 +81,14 @@ def generer_donnees_admin(pool_entites, nb_par_type=3):
             
     return dataset
 
+# Exécution du pipeline
 pool_entites_memoire = charger_entites_reference()
-dataset_json = generer_donnees_admin(pool_entites_memoire, nb_par_type=2)
+dataset_json = generer_donnees_admin(pool_entites_memoire, nb_par_type=NOMBRE_PAR_TYPE)
 
-with open("dataset_admin.json", "w", encoding="utf-8") as f:
+chemin_sortie = "dataset_admin.json"
+
+with open(chemin_sortie, "w", encoding="utf-8") as f:
     json.dump(dataset_json, f, indent=4, ensure_ascii=False)
+
+print(f"Fichier généré avec succès : {chemin_sortie}")
+print(f"Total documents : {len(dataset_json)} (soit {NOMBRE_PAR_TYPE} par catégorie)")

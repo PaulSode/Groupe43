@@ -1,14 +1,34 @@
 import json
 import os
+import re
 from jinja2 import Template
 from xhtml2pdf import pisa
 
-def charger_dataset(chemin_fichier="dataset_devis.json"):
+def charger_dataset(chemin_fichier="dataset_factures.json"):
     try:
         with open(chemin_fichier, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        raise RuntimeError(f"Fichier de données {chemin_fichier} introuvable. Exécuter le script 03.")
+        raise RuntimeError(f"Fichier de données {chemin_fichier} introuvable.")
+
+def obtenir_dernier_indice(dossier):
+    """
+    Scanne le dossier pour trouver le numéro de facture le plus élevé.
+    Format attendu : F_F-2026-XXXXX_...
+    """
+    if not os.path.exists(dossier):
+        return 0
+    
+    indices = []
+    # Regex pour capturer les 5 chiffres après 'F-2026-'
+    motif = re.compile(r"F-2026-(\d{5})")
+    
+    for fichier in os.listdir(dossier):
+        trouve = motif.search(fichier)
+        if trouve:
+            indices.append(int(trouve.group(1)))
+            
+    return max(indices) if indices else 0
 
 TEMPLATE_HTML = """
 <!DOCTYPE html>
@@ -23,8 +43,6 @@ TEMPLATE_HTML = """
         .bg-grey { background-color: #f2f2f2; }
         .right { text-align: right; }
         .bold { font-weight: bold; }
-        .signature-box { height: 120px; border: 1px solid #000; padding: 10px; }
-        .signature-text { font-size: 16px; color: #00008B; } /* Simulation encre bleue */
     </style>
 </head>
 <body>
@@ -36,10 +54,9 @@ TEMPLATE_HTML = """
                 SIRET : {{ emetteur.siret }}
             </td>
             <td width="50%" class="right" valign="top">
-                <h1 style="margin:0; font-size: 20px;">PROPOSITION COMMERCIALE / DEVIS</h1>
-                <span class="bold">N° :</span> {{ metadonnees.numero_devis }}<br/>
-                <span class="bold">Date :</span> {{ metadonnees.date_emission }}<br/>
-                <span class="bold">Validité de l'offre :</span> {{ metadonnees.duree_validite_jours }} jours
+                <h1 style="margin:0; font-size: 20px;">FACTURE</h1>
+                <span class="bold">N° :</span> {{ metadonnees.numero_facture }}<br/>
+                <span class="bold">Date :</span> {{ metadonnees.date_emission }}
             </td>
         </tr>
     </table>
@@ -50,7 +67,7 @@ TEMPLATE_HTML = """
         <tr>
             <td width="50%"></td>
             <td width="50%" class="border" valign="top">
-                <span class="bold">À l'attention de :</span><br/>
+                <span class="bold">Facturé à :</span><br/>
                 {{ client.prenom }} {{ client.nom }}<br/>
                 {{ client.adresse }}<br/>
                 {% if client.siret_societe %}SIRET : {{ client.siret_societe }}{% endif %}
@@ -81,21 +98,8 @@ TEMPLATE_HTML = """
     
     <table>
         <tr>
-            <td width="55%" valign="top" style="padding-right: 20px;">
-                <div class="signature-box">
-                    <span class="bold">Approbation du client</span><br/>
-                    Mention requise : "{{ validation.mention_requise }}"<br/><br/>
-                    {% if validation.est_signe %}
-                    <i>{{ validation.mention_requise }}</i><br/>
-                    Date de signature : {{ validation.date_signature }}<br/>
-                    <br/>
-                    <span class="signature-text">
-                        <i>[Signature : {{ client.prenom }} {{ client.nom }}]</i>
-                    </span>
-                    {% endif %}
-                </div>
-            </td>
-            <td width="45%" valign="top">
+            <td width="55%"></td>
+            <td width="45%">
                 <table class="border">
                     <tr>
                         <td class="bold border">Total HT</td>
@@ -117,28 +121,35 @@ TEMPLATE_HTML = """
 </html>
 """
 
-def generer_pdfs_devis():
-    dossier_sortie = "devis_pdf"
+def generer_pdfs_xhtml2pdf():
+    dossier_sortie = "factures_pdf"
     os.makedirs(dossier_sortie, exist_ok=True)
     
-    donnees_devis = charger_dataset()
+    # 1. Récupération du point de départ numérique
+    dernier_indice = obtenir_dernier_indice(dossier_sortie)
+    prochain_indice = dernier_indice + 1
+    
+    donnees_factures = charger_dataset()
     template = Template(TEMPLATE_HTML)
     
-    for devis in donnees_devis:
-        html_rendu = template.render(devis)
+    for i, facture in enumerate(donnees_factures):
+        # 2. Écrasement du numéro de facture pour garantir la séquence
+        indice_actuel = prochain_indice + i
+        numero_formate = f"F-2026-{indice_actuel:05d}"
+        facture["metadonnees"]["numero_facture"] = numero_formate
         
-        numero_devis = devis["metadonnees"]["numero_devis"]
-        date_emission = devis["metadonnees"]["date_emission"]
-        nom_fichier = f"D_{numero_devis}_{date_emission}.pdf"
+        date_emission = facture["metadonnees"]["date_emission"]
+        nom_fichier = f"F_{numero_formate}_{date_emission}.pdf"
         chemin_complet = os.path.join(dossier_sortie, nom_fichier)
+        
+        html_rendu = template.render(facture)
         
         with open(chemin_complet, "w+b") as fichier_sortie:
             statut = pisa.CreatePDF(html_rendu, dest=fichier_sortie)
             
         if statut.err:
-            print(f"Échec de la compilation géométrique : {nom_fichier}")
+            print(f"Échec de la compilation : {nom_fichier}")
         else:
-            etat_signature = "Signé" if devis["validation"]["est_signe"] else "Non signé"
-            print(f"Compilation réussie [{etat_signature}] : {chemin_complet}")
+            print(f"Généré : {nom_fichier} (Indice : {indice_actuel})")
 
-generer_pdfs_devis()
+generer_pdfs_xhtml2pdf()
