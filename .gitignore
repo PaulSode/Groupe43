@@ -3,3 +3,5 @@ venv
 /dataset/admin_pdf
 /dataset/devis_pdf
 /dataset/factures_pdf
+/dataset/dataset_images_final
+/dataset/*.json
