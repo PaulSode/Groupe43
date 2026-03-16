@@ -58,8 +58,8 @@ def creer_facture(idx, pool):
         },
         "emetteur": emetteur,
         "client": {
-            "nom": random.choice(["Dupont", "Dupond"]),
-            "prenom": random.choice(["Pierre", "Paul", "Michel", "Olivier"]),
+            "nom": fake.last_name(),
+            "prenom": fake.first_name(),
             "adresse": fake.address().replace('\n', ', ')
         },
         "transactions": trans,
@@ -81,7 +81,7 @@ def creer_devis(idx, pool):
             "validite_jours": random.choice([15, 30, 60])
         },
         "emetteur": emetteur,
-        "client": {"nom": random.choice(["Dupont", "Dupond"]), "prenom": random.choice(["Pierre", "Paul"])},
+        "client": {"nom": fake.last_name(), "prenom": fake.first_name()},
         "transactions": trans,
         "finances": {"total_ht": total_ht, "total_ttc": round(total_ht * 1.2, 2)},
         "validation": {
