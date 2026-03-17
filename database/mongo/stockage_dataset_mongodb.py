@@ -30,9 +30,14 @@ def image_to_pdf_bytes(image_path):
     return pdf_bytes
 
 # --- FONCTION DE STOCKAGE ---
-def save_pdf_to_mongo(pdf_bytes, name):
-    fs.put(pdf_bytes, filename=name)
-    print(f"[+] PDF '{name}' stocké dans MongoDB ✅")
+def save_to_mongo(id_document, pdf_bytes, texte_ocr):
+    doc = {
+        "Id_document": id_document,
+        "documents": pdf_bytes,
+        "texte_extrait": texte_ocr
+    }
+    collection.insert_one(doc)
+    print(f"[+] Document '{id_document}' stocké avec OCR ✅")
 
 # --- MAIN ---
 def main():
