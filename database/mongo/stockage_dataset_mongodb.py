@@ -2,8 +2,9 @@ import os
 from pymongo import MongoClient
 
 # --- CONFIGURATION ---
-FOLDER_IMAGES = "../dataset/dataset_images_final"  # dossier des images déjà bruitées
-MONGO_URI = "mongodb://localhost:27017/"
+FOLDER_IMAGES = "dataset_images_final"  # dossier des images déjà bruitées
+
+MONGO_URI = "mongodb://admin:admin123@localhost:27017/" 
 DB_NAME = "Data_Mongodb"
 COLLECTION_NAME = "images_raw"
 
