@@ -23,11 +23,19 @@ collection = db[COLLECTION_NAME]
 
 # --- FONCTION DE STOCKAGE ---
 def save_image_to_mongo(image_path):
+    
+    last_doc = collection.find_one(sort=[("id_document", -1)]) 
+    next_id = 1 if last_doc is None else last_doc["id_document"] + 1
+
+    date_integration = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     with open(image_path, "rb") as f:
         image_bytes = f.read()
 
     doc = {
-        "id_document": os.path.basename(image_path),
+        "id_document": next_id
+        "date_integration": date_integration
+        "nom_document": os.path.basename(image_path),
         "document": image_bytes,     
         "texte_extrait_OCR": ""           # vide pour l'instant
     }
