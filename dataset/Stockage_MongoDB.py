@@ -14,7 +14,6 @@ MONGO_PORT = os.getenv("MONGO_PORT")
 DB_NAME = os.getenv("MONGO_DB")
 COLLECTION_NAME = os.getenv("MONGO_COLLECTION")
 
-# Build Mongo URI
 MONGO_URI = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/"
 
 # --- MONGODB SETUP ---
@@ -28,9 +27,9 @@ def save_image_to_mongo(image_path):
         image_bytes = f.read()
 
     doc = {
-        "Id_document": os.path.basename(image_path),
-        "documents": image_bytes,     
-        "texte_extrait": ""           # vide pour l'instant
+        "id_document": os.path.basename(image_path),
+        "document": image_bytes,     
+        "texte_extrait_OCR": ""           # vide pour l'instant
     }
     collection.insert_one(doc)
     print(f"[+] Image '{os.path.basename(image_path)}' stockée dans MongoDB ✅")
