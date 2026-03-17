@@ -46,9 +46,33 @@ def generer_transactions(max_lignes=5):
 
 def creer_facture(idx, pool):
     valide = random.random() > 0.2
+    est_b2b = random.random() > 0.5 # 50% de chances d'être B2B
+    
     emetteur = extraire_entite(pool, valide=valide)
     trans, total_ht = generer_transactions()
     tva = round(total_ht * 0.20, 2)
+    
+    # Génération conditionnelle du client
+    if est_b2b:
+        entite_client = extraire_entite(pool, valide=True)
+        # On s'assure que le client n'est pas le même que l'émetteur (dans l'idéal)
+        while entite_client["siret"] == emetteur["siret"]:
+             entite_client = extraire_entite(pool, valide=True)
+             
+        client_data = {
+            "type": "B2B",
+            "nom": entite_client["nom"],
+            "siret": entite_client["siret"],
+            "adresse": entite_client["adresse"]
+        }
+    else:
+        client_data = {
+            "type": "B2C",
+            "nom": fake.last_name(),
+            "prenom": fake.first_name(),
+            "adresse": fake.address().replace('\n', ', ')
+        }
+
     return {
         "type_document": "FACTURE",
         "label_classification": "facture_valide" if valide else "facture_anomalie",
@@ -57,21 +81,44 @@ def creer_facture(idx, pool):
             "date_emission": fake.date_between(start_date='-1y', end_date='today').isoformat()
         },
         "emetteur": emetteur,
-        "client": {
-            "nom": fake.last_name(),
-            "prenom": fake.first_name(),
-            "adresse": fake.address().replace('\n', ', ')
-        },
+        "client": client_data, # Utilisation de la nouvelle structure
         "transactions": trans,
         "finances": {"total_ht": total_ht, "montant_tva": tva, "total_ttc": round(total_ht + tva, 2)}
     }
 
+# Dans la fonction creer_devis
 def creer_devis(idx, pool):
     valide = random.random() > 0.2
     signe = random.random() > 0.5
+    est_b2b = random.random() > 0.5
+    
     emetteur = extraire_entite(pool, valide=valide)
     trans, total_ht = generer_transactions(max_lignes=8)
     date_e = fake.date_between(start_date='-1y', end_date='today')
+    
+    # Génération conditionnelle du client
+    if est_b2b:
+        entite_client = extraire_entite(pool, valide=True)
+        while entite_client["siret"] == emetteur["siret"]:
+             entite_client = extraire_entite(pool, valide=True)
+             
+        client_data = {
+            "type": "B2B",
+            "nom": entite_client["nom"],
+            "siret": entite_client["siret"],
+            "adresse": entite_client["adresse"]
+        }
+        nom_signataire = "La Direction" # Pour la signature
+    else:
+        prenom_fct = fake.first_name()
+        client_data = {
+            "type": "B2C",
+            "nom": fake.last_name(),
+            "prenom": prenom_fct,
+            "adresse": fake.address().replace('\n', ', ')
+        }
+        nom_signataire = prenom_fct # Pour la signature
+
     return {
         "type_document": "DEVIS",
         "label_classification": "devis_valide" if valide else "devis_anomalie",
@@ -81,12 +128,13 @@ def creer_devis(idx, pool):
             "validite_jours": random.choice([15, 30, 60])
         },
         "emetteur": emetteur,
-        "client": {"nom": fake.last_name(), "prenom": fake.first_name()},
+        "client": client_data, # Utilisation de la nouvelle structure
         "transactions": trans,
         "finances": {"total_ht": total_ht, "total_ttc": round(total_ht * 1.2, 2)},
         "validation": {
             "est_signe": signe,
-            "date_signature": (date_e + timedelta(days=2)).isoformat() if signe else None
+            "date_signature": (date_e + timedelta(days=2)).isoformat() if signe else None,
+            "nom_signataire": nom_signataire # Ajout pour le rendu
         }
     }
 

@@ -35,7 +35,17 @@ TEMPLATE_FACTURE = """
         <td width="50%" valign="top"><span class="bold">{{ emetteur.nom }}</span><br/>{{ emetteur.adresse }}<br/>SIRET : {{ emetteur.siret }}</td>
         <td width="50%" class="right" valign="top"><h1 style="margin:0; font-size: 20px;">FACTURE</h1><span class="bold">N° :</span> {{ metadonnees.numero }}<br/><span class="bold">Date :</span> {{ metadonnees.date_emission }}</td>
     </tr></table><br/><br/>
-    <table><tr><td width="50%"></td><td width="50%" class="border" valign="top"><span class="bold">Facturé à :</span><br/>{{ client.prenom }} {{ client.nom }}<br/>{{ client.adresse }}</td></tr></table><br/><br/>
+    <table><tr><td width="50%"></td><td width="50%" class="border" valign="top">
+        <span class="bold">Facturé à :</span><br/>
+        {% if client.type == 'B2B' %}
+            <span class="bold">{{ client.nom }}</span><br/>
+            {{ client.adresse }}<br/>
+            SIRET : {{ client.siret }}
+        {% else %}
+            {{ client.prenom }} {{ client.nom }}<br/>
+            {{ client.adresse }}
+        {% endif %}
+    </td></tr></table><br/><br/>
     <table class="border"><tr class="bg-grey"><th class="border" align="left">Désignation</th><th class="border right">Qté</th><th class="border right">PU HT</th><th class="border right">Total HT</th></tr>
     {% for item in transactions %}<tr><td class="border">{{ item.designation }}</td><td class="border right">{{ item.quantite }}</td><td class="border right">{{ "%.2f"|format(item.prix_unitaire_ht) }} EUR</td><td class="border right">{{ "%.2f"|format(item.sous_total_ht) }} EUR</td></tr>{% endfor %}</table><br/>
     <table align="right" width="40%" class="border"><tr><td class="bold">TOTAL TTC</td><td class="right bold">{{ "%.2f"|format(finances.total_ttc) }} EUR</td></tr></table>
@@ -49,9 +59,20 @@ TEMPLATE_DEVIS = """
         <td width="50%" valign="top"><span class="bold">{{ emetteur.nom }}</span><br/>{{ emetteur.adresse }}<br/>SIRET : {{ emetteur.siret }}</td>
         <td width="50%" class="right" valign="top"><h1 style="margin:0; font-size: 20px;">DEVIS</h1><span class="bold">N° :</span> {{ metadonnees.numero }}<br/><span class="bold">Date :</span> {{ metadonnees.date_emission }}</td>
     </tr></table><br/><br/>
+    <table><tr><td width="50%"></td><td width="50%" class="border" valign="top">
+        <span class="bold">Client :</span><br/>
+        {% if client.type == 'B2B' %}
+            <span class="bold">{{ client.nom }}</span><br/>
+            {{ client.adresse }}<br/>
+            SIRET : {{ client.siret }}
+        {% else %}
+            {{ client.prenom }} {{ client.nom }}<br/>
+            {{ client.adresse }}
+        {% endif %}
+    </td></tr></table><br/><br/>
     <table class="border"><tr style="background-color:#f2f2f2"><th class="border" align="left">Description des prestations</th><th class="border right">Total HT</th></tr>
     {% for item in transactions %}<tr><td class="border">{{ item.designation }}</td><td class="border right">{{ "%.2f"|format(item.sous_total_ht) }} EUR</td></tr>{% endfor %}</table><br/>
-    <table><tr><td width="55%" valign="top"><div class="signature-box"><b>Bon pour accord :</b><br/>{% if validation.est_signe %}<i style="color:darkblue; font-size:14px;">Le {{ validation.date_signature }}<br/>[Signature client : {{ client.prenom }}]</i>{% endif %}</div></td>
+    <table><tr><td width="55%" valign="top"><div class="signature-box"><b>Bon pour accord :</b><br/>{% if validation.est_signe %}<i style="color:darkblue; font-size:14px;">Le {{ validation.date_signature }}<br/>[Signature : {{ validation.nom_signataire }}]</i>{% endif %}</div></td>
     <td width="45%"><table class="border"><tr><td class="bold">TOTAL TTC</td><td class="right bold">{{ "%.2f"|format(finances.total_ttc) }} EUR</td></tr></table></td></tr></table>
 </body></html>
 """
