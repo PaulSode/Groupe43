@@ -1,12 +1,21 @@
 import os
 from pymongo import MongoClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- CONFIGURATION ---
 FOLDER_IMAGES = "dataset_images_final"  # dossier des images déjà bruitées
 
-MONGO_URI = "mongodb://admin:admin123@localhost:27017/" 
-DB_NAME = "Data_Mongodb"
-COLLECTION_NAME = "images_raw"
+MONGO_USER = os.getenv("MONGO_USER")
+MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
+MONGO_HOST = os.getenv("MONGO_HOST")
+MONGO_PORT = os.getenv("MONGO_PORT")
+DB_NAME = os.getenv("MONGO_DB")
+COLLECTION_NAME = os.getenv("MONGO_COLLECTION")
+
+# Build Mongo URI
+MONGO_URI = f"mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}/"
 
 # --- MONGODB SETUP ---
 client = MongoClient(MONGO_URI)
