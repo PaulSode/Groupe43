@@ -1,0 +1,7 @@
+__pycache__/
+*.pdf
+dataset_images_final/
+admin_pdf/
+devis_pdf/
+factures_pdf/
+*.json

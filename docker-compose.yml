@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # --- BASES DE DONNÉES ---
+  mongodb:
+    image: mongo:6.0
+    container_name: bdd_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - data_network
+
+  postgresdb:
+    image: postgres:15
+    container_name: bdd_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - data_network
+
+  # --- SERVICES APPLICATIFS ---
+  generateur_donnees:
+    build:
+      context: ./dataset
+    container_name: app_generateur
+    depends_on:
+      - mongodb
+      - postgresdb
+    volumes:
+      - ./dataset:/app
+    profiles:
+      - data_prep
+    networks:
+      - data_network
+    environment:
+      # Variables transmises au script Python pour cibler les conteneurs de BDD
+      - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/
+      - PG_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@postgresdb:5432/${POSTGRES_DB}
+
+  modele_ia:
+    build:
+      context: ./services
+    container_name: app_ia
+    depends_on:
+      - mongodb
+      - postgresdb
+    volumes:
+      - ./dataset/dataset_images_final:/data/input:ro
+    networks:
+      - data_network
+
+# --- PERSISTANCE ET RÉSEAU ---
+volumes:
+  mongodb_data:
+    name: hackathon_mongo_vol
+  postgres_data:
+    name: hackathon_pg_vol
+
+networks:
+  data_network:
+    name: hackathon_net
+    driver: bridge
