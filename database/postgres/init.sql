@@ -55,9 +55,38 @@ CREATE TABLE devis (
     CONSTRAINT chk_signature CHECK (est_signe = FALSE OR date_signature IS NOT NULL)
 );
 
-CREATE TABLE document_administratif (
+CREATE TABLE kbis (
     id_document INT PRIMARY KEY REFERENCES document(id_document) ON DELETE CASCADE,
-    donnees_specifiques JSONB NOT NULL
+    greffe VARCHAR(100) NOT NULL,
+    numero_gestion VARCHAR(50) NOT NULL,
+    forme_juridique VARCHAR(20) NOT NULL,
+    capital VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE avis_sirene (
+    id_document INT PRIMARY KEY REFERENCES document(id_document) ON DELETE CASCADE,
+    code_ape VARCHAR(10) NOT NULL,
+    activite_principale TEXT NOT NULL,
+    date_immatriculation DATE NOT NULL
+);
+
+CREATE TABLE attestation_urssaf (
+    id_document INT PRIMARY KEY REFERENCES document(id_document) ON DELETE CASCADE,
+    code_securite VARCHAR(50) UNIQUE NOT NULL,
+    compte_urssaf VARCHAR(50) NOT NULL,
+    date_fin_validite DATE NOT NULL
+);
+
+CREATE TABLE rib (
+    id_document INT PRIMARY KEY REFERENCES document(id_document) ON DELETE CASCADE,
+    banque VARCHAR(150) NOT NULL,
+    code_banque VARCHAR(10) NOT NULL,
+    code_guichet VARCHAR(10) NOT NULL,
+    numero_compte VARCHAR(50) NOT NULL,
+    cle_rib VARCHAR(5) NOT NULL,
+    iban VARCHAR(34) UNIQUE NOT NULL,
+    bic VARCHAR(15) NOT NULL,
+    domiciliation TEXT NOT NULL
 );
 
 -- 5. TABLE TRANSACTION
