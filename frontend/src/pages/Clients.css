@@ -1,0 +1,258 @@
+.clients-container {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.clients-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.header-content h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.header-content p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.clients-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box svg {
+  position: absolute;
+  left: 16px;
+  color: var(--text-muted);
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 48px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.status-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.filter-btn.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.clients-table-container {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.clients-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.clients-table thead {
+  background: var(--bg-color);
+}
+
+.clients-table th {
+  padding: 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.clients-table tbody tr {
+  border-top: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.clients-table tbody tr:hover {
+  background: var(--bg-color);
+}
+
+.clients-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.client-name {
+  font-weight: 600;
+}
+
+.mono {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-actif {
+  background: #d1fae5;
+  color: var(--success-color);
+}
+
+.status-inactif {
+  background: #f3f4f6;
+  color: var(--text-secondary);
+}
+
+.status-attente {
+  background: #fef3c7;
+  color: var(--warning-color);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: var(--bg-color);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.btn-icon.btn-danger:hover {
+  border-color: var(--error-color);
+  color: var(--error-color);
+}
+
+.empty-state {
+  padding: 64px 32px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 16px;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .clients-container {
+    padding: 16px;
+  }
+
+  .clients-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .clients-filters {
+    flex-direction: column;
+  }
+
+  .search-box {
+    min-width: 100%;
+  }
+
+  .status-filters {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .clients-table-container {
+    overflow-x: auto;
+  }
+
+  .clients-table {
+    min-width: 800px;
+  }
+}

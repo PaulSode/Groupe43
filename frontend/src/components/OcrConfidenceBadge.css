@@ -1,0 +1,33 @@
+.ocr-confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ocr-confidence-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.confidence-label {
+  margin-left: 2px;
+}
+
+.confidence-high {
+  background: #d1fae5;
+  color: var(--success-color);
+}
+
+.confidence-medium {
+  background: #fef3c7;
+  color: var(--warning-color);
+}
+
+.confidence-low {
+  background: #fee2e2;
+  color: var(--error-color);
+}
