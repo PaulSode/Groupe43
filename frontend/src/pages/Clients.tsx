@@ -2,24 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { clientsAPI } from '../api/client';
 import { Client } from '../types';
 import FicheClient from '../components/FicheClient';
+import ClientViewer from '../components/ClientViewer';
 import './Clients.css';
 
 const Clients: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [clientForDocuments, setClientForDocuments] = useState<Client | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<'all' | 'actif' | 'inactif' | 'en_attente'>('all');
 
-  useEffect(() => {
-    loadClients();
-  }, []);
-
-  useEffect(() => {
-    filterClientsList();
-  }, [clients, searchQuery, filterStatus]);
+  useEffect(() => { loadClients(); }, []);
+  useEffect(() => { filterClientsList(); }, [clients, searchQuery, filterStatus]);
 
   const loadClients = async () => {
     try {
@@ -34,11 +31,7 @@ const Clients: React.FC = () => {
 
   const filterClientsList = () => {
     let filtered = clients;
-
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(c => c.statut === filterStatus);
-    }
-
+    if (filterStatus !== 'all') filtered = filtered.filter(c => c.statut === filterStatus);
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(c =>
@@ -48,24 +41,12 @@ const Clients: React.FC = () => {
         c.siret.includes(query)
       );
     }
-
     setFilteredClients(filtered);
   };
 
-  const handleCreateClient = () => {
-    setSelectedClient(null);
-    setShowModal(true);
-  };
-
-  const handleEditClient = (client: Client) => {
-    setSelectedClient(client);
-    setShowModal(true);
-  };
-
-  const handleClientSaved = () => {
-    setShowModal(false);
-    loadClients();
-  };
+  const handleCreateClient = () => { setSelectedClient(null); setShowModal(true); };
+  const handleEditClient = (client: Client) => { setSelectedClient(client); setShowModal(true); };
+  const handleClientSaved = () => { setShowModal(false); loadClients(); };
 
   const handleDeleteClient = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
@@ -89,11 +70,7 @@ const Clients: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="clients-container">
-        <div className="loading">Chargement des clients...</div>
-      </div>
-    );
+    return <div className="clients-container"><div className="loading">Chargement des clients...</div></div>;
   }
 
   return (
@@ -125,32 +102,16 @@ const Clients: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
         <div className="status-filters">
-          <button
-            className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('all')}
-          >
-            Tous
-          </button>
-          <button
-            className={`filter-btn ${filterStatus === 'actif' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('actif')}
-          >
-            Actifs
-          </button>
-          <button
-            className={`filter-btn ${filterStatus === 'en_attente' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('en_attente')}
-          >
-            En attente
-          </button>
-          <button
-            className={`filter-btn ${filterStatus === 'inactif' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('inactif')}
-          >
-            Inactifs
-          </button>
+          {(['all', 'actif', 'en_attente', 'inactif'] as const).map(status => (
+            <button
+              key={status}
+              className={`filter-btn ${filterStatus === status ? 'active' : ''}`}
+              onClick={() => setFilterStatus(status)}
+            >
+              {status === 'all' ? 'Tous' : status === 'actif' ? 'Actifs' : status === 'en_attente' ? 'En attente' : 'Inactifs'}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -170,9 +131,7 @@ const Clients: React.FC = () => {
           <tbody>
             {filteredClients.map(client => (
               <tr key={client.id}>
-                <td className="client-name">
-                  {client.nom} {client.prenom}
-                </td>
+                <td className="client-name">{client.nom} {client.prenom}</td>
                 <td>{client.email}</td>
                 <td>{client.telephone}</td>
                 <td className="mono">{client.siret}</td>
@@ -180,6 +139,16 @@ const Clients: React.FC = () => {
                 <td>{new Date(client.dateCreation).toLocaleDateString('fr-FR')}</td>
                 <td>
                   <div className="action-buttons">
+                    <button
+                      onClick={() => setClientForDocuments(client)}
+                      className="btn-icon"
+                      title="Voir les documents"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    </button>
                     <button
                       onClick={() => handleEditClient(client)}
                       className="btn-icon"
@@ -225,6 +194,13 @@ const Clients: React.FC = () => {
           client={selectedClient}
           onClose={() => setShowModal(false)}
           onSave={handleClientSaved}
+        />
+      )}
+
+      {clientForDocuments && (
+        <ClientViewer
+          client={clientForDocuments}
+          onClose={() => setClientForDocuments(null)}
         />
       )}
     </div>
