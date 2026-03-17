@@ -74,7 +74,7 @@ def traiter_dataset():
                     output_name = f"{os.path.splitext(file)[0]}_p{i}_{label}.jpg"
                     cv2.imwrite(os.path.join(OUTPUT_IMAGE_FOLDER, output_name), img, [int(cv2.IMWRITE_JPEG_QUALITY), random.randint(50, 90)])
                 doc.close()
-                print("Dégradation visuelle terminée")
+        print("Dégradation visuelle terminée")
 
 if __name__ == "__main__":
     traiter_dataset()
