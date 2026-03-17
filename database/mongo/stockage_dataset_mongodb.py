@@ -30,7 +30,7 @@ def image_to_pdf_bytes(image_path):
     return pdf_bytes
 
 # --- FONCTION DE STOCKAGE ---
-def save_to_mongo(id_document, pdf_bytes, texte_ocr):
+def save_pdf_to_mongo(id_document, pdf_bytes, texte_ocr):
     doc = {
         "Id_document": id_document,
         "documents": pdf_bytes,
