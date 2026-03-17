@@ -1,3 +1,3 @@
 db = db.getSiblingDB("hackathon");
 
-db.createCollection("images_raw");
+db.createCollection("MONGO_COLLECTION");
