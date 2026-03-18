@@ -14,6 +14,7 @@ CREATE TABLE entite (
     type_entite VARCHAR(3) NOT NULL CHECK (type_entite IN ('B2B', 'B2C')),
     nom VARCHAR(255) NOT NULL,
     prenom VARCHAR(100),
+    siren VARCHAR(9),
     siret VARCHAR(14) UNIQUE,
     adresse TEXT NOT NULL,
     email VARCHAR(255),
@@ -60,7 +61,7 @@ CREATE TABLE kbis (
     greffe VARCHAR(100) NOT NULL,
     numero_gestion VARCHAR(50) NOT NULL,
     forme_juridique VARCHAR(20) NOT NULL,
-    capital VARCHAR(50) NOT NULL
+    capital INT NOT NULL
 );
 
 CREATE TABLE avis_sirene (
