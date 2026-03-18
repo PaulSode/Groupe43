@@ -14,7 +14,13 @@ from extractor.extractor import DataExtractor
 from validator.validator import DocumentValidator
 from datalake.mongo_client import save_raw_document, save_extracted_data, save_verification_report
 
-app = FastAPI(title="DocuScan - Extraction & Vérification de Documents")
+from auth.auth_service import router as auth_router
+from clients.clients_service import router as clients_router
+from documents.documents_service import router as documents_router
+from incoherences.incoherences_service import router as incoherences_router
+from dashboard.dashboard_service import router as dashboard_router
+
+app = FastAPI(title="DocFlow — Extraction & Vérification de Documents")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +29,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Routers applicatifs ────────────────────────────────────────
+app.include_router(auth_router, prefix="/api")
+app.include_router(clients_router, prefix="/api")
+app.include_router(documents_router, prefix="/api")
+app.include_router(incoherences_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
+
+# ── Config upload pour le pipeline OCR ─────────────────────────
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -31,6 +45,8 @@ classifier = DocumentClassifier()
 extractor = DataExtractor()
 validator = DocumentValidator()
 
+
+# ── Endpoints pipeline OCR (existants, inchangés) ─────────────
 
 @app.get("/health")
 def health():

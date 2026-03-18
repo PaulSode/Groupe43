@@ -28,12 +28,46 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Montage du script d'initialisation
       - ./database/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - data_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # --- SERVICES APPLICATIFS ---
+  # --- SERVICE API (FastAPI) ---
+  api:
+    build:
+      context: ./services
+    container_name: app_api
+    restart: unless-stopped
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads_data:/app/uploads
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASS=${POSTGRES_PASS}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgresdb
+      - POSTGRES_PORT=5432
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASS=${MONGO_PASS}
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_DB=${MONGO_DB}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - data_network
+
+  # --- GÉNÉRATEUR DE DONNÉES ---
   generateur_donnees:
     build:
       context: ./dataset
@@ -48,21 +82,8 @@ services:
     networks:
       - data_network
     environment:
-      # Variables transmises au script Python pour cibler les conteneurs de BDD
       - MONGO_URI=mongodb://${MONGO_USER}:${MONGO_PASS}@mongodb:27017/
       - PG_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASS}@postgresdb:5432/${POSTGRES_DB}
-
-  modele_ia:
-    build:
-      context: ./services
-    container_name: app_ia
-    depends_on:
-      - mongodb
-      - postgresdb
-    volumes:
-      - ./dataset/dataset_images_final:/data/input:ro
-    networks:
-      - data_network
 
 # --- PERSISTANCE ET RÉSEAU ---
 volumes:
@@ -70,6 +91,8 @@ volumes:
     name: hackathon_mongo_vol
   postgres_data:
     name: hackathon_pg_vol
+  uploads_data:
+    name: hackathon_uploads_vol
 
 networks:
   data_network:

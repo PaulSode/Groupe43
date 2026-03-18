@@ -8,7 +8,6 @@ from api.models import DocType
 
 class DocumentClassifier:
     """Classifie un document à partir du texte OCR brut."""
-
     DOC_TYPE_PATTERNS = {
         DocType.FACTURE: [
             r"facture",
