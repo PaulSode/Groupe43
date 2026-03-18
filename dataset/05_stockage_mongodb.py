@@ -55,5 +55,16 @@ def main():
 
     print("\n[+] Toutes les images ont été stockées avec succès dans MongoDB.")
 
+    print("\n Vérification des données :\n")
+
+    for doc in collection.find().limit(3):
+        print({
+            "id_document": doc.get("id_document"),
+            "date_integration": doc.get("date_integration"),
+            "nom_document": doc.get("nom_document"),
+            "has_image": "document" in doc,
+            "texte_extrait_OCR": doc.get("texte_extrait_OCR")
+        })
+
 if __name__ == "__main__":
     main()
