@@ -12,6 +12,7 @@ from ocr.ocr_service import OCRService
 from classifier.classifier import DocumentClassifier
 from extractor.extractor import DataExtractor
 from validator.validator import DocumentValidator
+from datalake.mongo_client import save_raw_document, save_extracted_data, save_verification_report
 
 app = FastAPI(title="DocuScan - Extraction & Vérification de Documents")
 
@@ -64,6 +65,11 @@ async def extract_document(file: UploadFile = File(...), doc_type: str = "auto")
 
         fields = extractor.extract(raw_text, detected_type)
 
+        save_raw_document(file_id, file.filename, file_path, raw_text)
+        save_extracted_data(
+            file_id, file.filename, detected_type.value, raw_text, fields.model_dump()
+        )
+
         return ExtractionResult(
             file_id=file_id,
             filename=file.filename,
@@ -79,4 +85,5 @@ async def extract_document(file: UploadFile = File(...), doc_type: str = "auto")
 async def verify_documents(documents: List[ExtractionResult]):
     """Vérifie la cohérence inter-documents."""
     report = validator.validate(documents)
+    save_verification_report(report.model_dump())
     return report

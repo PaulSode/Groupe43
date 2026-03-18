@@ -8,3 +8,5 @@ python-multipart==0.0.20
 easyocr==1.7.2
 Pillow==11.1.0
 pydantic==2.10.4
+pymongo==4.11.3
+python-dotenv==1.1.0
