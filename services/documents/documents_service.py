@@ -11,9 +11,23 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 
 from api.database import get_db
 from api.dependencies import get_current_user
-from api.models import DocumentResponse, DocumentStatusUpdate, DocType
+from api.models import DocumentResponse, DocumentStatusUpdate, DocumentWithIncoherencesResponse, IncoherenceResponse, DocType
 
 router = APIRouter(tags=["Documents"])
+
+
+def _row_to_incoherence(row: dict) -> dict:
+    return {
+        "id": str(row["id_incoherence"]),
+        "documentId": str(row["id_document"]),
+        "type": row["type_incoherence"],
+        "severity": row["severity"],
+        "message": row["message"],
+        "field": row["field"] or "",
+        "expectedValue": row.get("expected_value"),
+        "actualValue": row.get("actual_value"),
+        "dateDetection": row["date_detection"].isoformat() if row.get("date_detection") else "",
+    }
 
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -104,23 +118,36 @@ def get_documents_by_client(client_id: int, _user: dict = Depends(get_current_us
 def get_document_file(doc_id: int, _user: dict = Depends(get_current_user)):
     with get_db() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT ocr_file_id, file_path FROM document WHERE id_document = %s", (doc_id,))
+        cur.execute("SELECT ocr_file_id, file_path, filename FROM document WHERE id_document = %s", (doc_id,))
         row = cur.fetchone()
 
     if not row:
         raise HTTPException(404, "Document introuvable")
+
+    def _mime(name: str) -> str:
+        ext = os.path.splitext(name)[1].lower()
+        return {
+            ".pdf": "application/pdf",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".tiff": "image/tiff",
+            ".bmp": "image/bmp",
+        }.get(ext, "application/octet-stream")
 
     if row.get("ocr_file_id"):
         db_mongo = get_mongo_db()
         fs = gridfs.GridFS(db_mongo, collection="images_raw")
         grid_out = fs.find_one({"file_id": row["ocr_file_id"]})
         if grid_out:
-            return Response(content=grid_out.read(), media_type=grid_out.content_type)
+            mt = grid_out.content_type
+            if mt in (None, "application/octet-stream") and row.get("filename"):
+                mt = _mime(row["filename"])
+            return Response(content=grid_out.read(), media_type=mt)
 
     if row.get("file_path") and os.path.exists(row["file_path"]):
         with open(row["file_path"], "rb") as f:
-            ext = os.path.splitext(row["file_path"])[1].lower()
-            mt = "application/pdf" if ext == ".pdf" else f"image/{ext.replace('.', '')}"
+            mt = _mime(row.get("filename") or row["file_path"])
             return Response(content=f.read(), media_type=mt)
 
     raise HTTPException(404, "Fichier source introuvable")
@@ -141,7 +168,19 @@ async def upload_documents(
     classifier = DocumentClassifier()
     extractor = DataExtractor()
 
-    client_id = int(clientId) if clientId else None
+    if not clientId:
+        raise HTTPException(400, "Un client doit être sélectionné")
+    try:
+        client_id = int(clientId)
+    except (ValueError, TypeError):
+        raise HTTPException(400, "ID client invalide")
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_client FROM client WHERE id_client = %s", (client_id,))
+        if not cur.fetchone():
+            raise HTTPException(404, "Client introuvable")
+
     results = []
 
     for uploaded_file in files:
@@ -159,9 +198,7 @@ async def upload_documents(
             raw_text, confidence = ocr_service.extract_text_with_confidence(file_path)
             detected_type = classifier.classify(raw_text)
             fields = extractor.extract(raw_text, detected_type)
-
             confidence = float(confidence)
-            statut = _evaluate_status(confidence, detected_type.value, fields.model_dump())
 
             save_raw_document(file_id, uploaded_file.filename, file_path, raw_text)
             save_extracted_data(file_id, uploaded_file.filename, detected_type.value, raw_text, fields.model_dump())
@@ -173,20 +210,21 @@ async def upload_documents(
                        (type_document, id_client, filename, file_path, ocr_file_id,
                         date_emission, date_expiration, statut, ocr_confidence, raw_text, extracted_data)
                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                       RETURNING id_document, date_upload""",
+                       RETURNING id_document""",
                     (
                         detected_type.value, client_id, uploaded_file.filename, file_path,
                         file_id, fields.date_emission, fields.date_expiration,
-                        statut, confidence, raw_text, json.dumps(fields.model_dump()),
+                        "pending", confidence, raw_text, json.dumps(fields.model_dump()),
                     ),
                 )
-                inserted = cur.fetchone()
+                doc_id = cur.fetchone()["id_document"]
 
-            _generate_incoherences(inserted["id_document"], detected_type.value, fields.model_dump(), client_id)
-
+            _generate_incoherences(doc_id, detected_type.value, fields.model_dump(), client_id)
+            final_status = _evaluate_status(confidence, detected_type.value, fields.model_dump(), doc_id)
             with get_db() as conn:
                 cur = conn.cursor()
-                cur.execute(f"{_SELECT_DOC} WHERE d.id_document = %s", (inserted["id_document"],))
+                cur.execute("UPDATE document SET statut = %s WHERE id_document = %s", (final_status, doc_id))
+                cur.execute(f"{_SELECT_DOC} WHERE d.id_document = %s", (doc_id,))
                 results.append(_row_to_document(cur.fetchone()))
 
         except Exception as e:
@@ -204,15 +242,52 @@ async def upload_documents(
     return results
 
 
-@router.patch("/documents/{doc_id}/status", response_model=DocumentResponse)
+@router.patch("/documents/{doc_id}/status", response_model=DocumentWithIncoherencesResponse)
 def update_document_status(doc_id: int, data: DocumentStatusUpdate, _user: dict = Depends(get_current_user)):
     with get_db() as conn:
         cur = conn.cursor()
-        cur.execute("UPDATE document SET statut = %s WHERE id_document = %s", (data.status, doc_id))
-        if cur.rowcount == 0:
-            raise HTTPException(404, "Document introuvable")
+        cur.execute("SELECT id_client, type_document, ocr_confidence, extracted_data FROM document WHERE id_document = %s", (doc_id,))
+        doc = cur.fetchone()
+    if not doc:
+        raise HTTPException(404, "Document introuvable")
+
+    new_data = data.extractedData
+    if new_data is not None:
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("UPDATE document SET extracted_data = %s WHERE id_document = %s",
+                        (json.dumps(new_data), doc_id))
+
+    client_id = doc.get("id_client")
+    if client_id:
+        fields = new_data if new_data else (doc.get("extracted_data") or {})
+        if isinstance(fields, str):
+            fields = json.loads(fields)
+
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("DELETE FROM incoherence WHERE id_document = %s", (doc_id,))
+
+        _generate_incoherences(doc_id, doc["type_document"], fields, client_id)
+
+    confidence = float(doc["ocr_confidence"]) if doc.get("ocr_confidence") is not None else 100.0
+    fields_for_status = new_data if new_data else (doc.get("extracted_data") or {})
+    if isinstance(fields_for_status, str):
+        fields_for_status = json.loads(fields_for_status)
+    new_status = _evaluate_status(confidence, doc["type_document"], fields_for_status, doc_id)
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE document SET statut = %s WHERE id_document = %s", (new_status, doc_id))
         cur.execute(f"{_SELECT_DOC} WHERE d.id_document = %s", (doc_id,))
-        return _row_to_document(cur.fetchone())
+        doc_resp = _row_to_document(cur.fetchone())
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM incoherence WHERE id_document = %s AND resolved = FALSE ORDER BY date_detection DESC", (doc_id,))
+        incoherences = [_row_to_incoherence(r) for r in cur.fetchall()]
+
+    return {"document": doc_resp, "incoherences": incoherences}
 
 
 @router.post("/documents/{doc_id}/reprocess", response_model=DocumentResponse)
@@ -240,8 +315,6 @@ def reprocess_document(doc_id: int, _user: dict = Depends(get_current_user)):
     confidence = float(confidence)
     detected_type = classifier.classify(raw_text)
     fields = extractor.extract(raw_text, detected_type)
-
-    statut = _evaluate_status(confidence, detected_type.value, fields.model_dump())
     file_id = doc.get("ocr_file_id") or str(uuid.uuid4())
 
     save_raw_document(file_id, doc["filename"], doc["file_path"], raw_text)
@@ -250,20 +323,24 @@ def reprocess_document(doc_id: int, _user: dict = Depends(get_current_user)):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
-            """UPDATE document SET type_document=%s, statut=%s, ocr_confidence=%s,
+            """UPDATE document SET type_document=%s, statut='pending', ocr_confidence=%s,
                raw_text=%s, extracted_data=%s, date_emission=%s, date_expiration=%s,
                ocr_file_id=%s
                WHERE id_document=%s""",
-            (detected_type.value, statut, confidence, raw_text,
+            (detected_type.value, confidence, raw_text,
              json.dumps(fields.model_dump()), fields.date_emission, fields.date_expiration,
              file_id, doc_id),
         )
         cur.execute("DELETE FROM incoherence WHERE id_document = %s", (doc_id,))
 
-    _generate_incoherences(doc_id, detected_type.value, fields.model_dump(), doc.get("id_client"))
+    client_id = doc.get("id_client")
+    if client_id:
+        _generate_incoherences(doc_id, detected_type.value, fields.model_dump(), client_id)
+    final_status = _evaluate_status(confidence, detected_type.value, fields.model_dump(), doc_id)
 
     with get_db() as conn:
         cur = conn.cursor()
+        cur.execute("UPDATE document SET statut = %s WHERE id_document = %s", (final_status, doc_id))
         cur.execute(f"{_SELECT_DOC} WHERE d.id_document = %s", (doc_id,))
         return _row_to_document(cur.fetchone())
 
@@ -285,56 +362,74 @@ def delete_document(doc_id: int, _user: dict = Depends(get_current_user)):
 
 # ── Génération automatique d'incohérences ──────────────────────
 
-def _generate_incoherences(doc_id: int, doc_type: str, fields: dict, client_id: int | None):
-    anomalies = []
+_FIELD_LABELS = {
+    "siret": "SIRET", "siren": "SIREN",
+    "tva_intracom": "TVA intracommunautaire", "raison_sociale": "Raison sociale",
+}
 
-    siret = fields.get("siret")
-    if siret:
-        cleaned = siret.replace(" ", "")
-        if len(cleaned) != 14 or not cleaned.isdigit():
-            anomalies.append(("siret_mismatch", "high", "Format SIRET invalide", "siret", "", siret))
-        elif not _luhn_check(cleaned):
-            anomalies.append(("siret_mismatch", "medium", "Le SIRET ne passe pas la validation Luhn", "siret", "", siret))
+_CLIENT_COMPARABLE_FIELDS = ["siret", "siren", "tva_intracom"]
 
-    if fields.get("montant_ht") and fields.get("montant_ttc") and fields.get("taux_tva"):
-        try:
-            ht = float(fields["montant_ht"])
-            ttc = float(fields["montant_ttc"])
-            taux = float(fields["taux_tva"].replace("%", ""))
-            expected = round(ht * (1 + taux / 100), 2)
-            if abs(expected - ttc) > 0.02:
-                anomalies.append((
-                    "montant_incoherent", "high",
-                    f"HT={ht}€ × TVA {taux}% = {expected}€ attendu, mais {ttc}€ trouvé",
-                    "montantTTC", str(expected), str(ttc),
-                ))
-        except (ValueError, TypeError):
-            pass
 
-    tva = fields.get("tva_intracom")
-    if tva:
-        cleaned = tva.replace(" ", "").upper()
-        if not (cleaned.startswith("FR") and len(cleaned) == 13):
-            anomalies.append(("tva_invalid", "medium", f"Numéro TVA intracommunautaire invalide : {tva}", "tva", "", tva))
+def _generate_incoherences(doc_id: int, doc_type: str, fields: dict, client_id: int) -> int:
+    """Génère les incohérences et renvoie le nombre créé."""
+    anomalies: list[tuple] = []
 
-    if client_id and siret:
-        with get_db() as conn:
-            cur = conn.cursor()
-            cur.execute(
-                """SELECT d.extracted_data->>'siret' AS other_siret, d.filename
-                   FROM document d
-                   WHERE d.id_client = %s AND d.id_document != %s
-                         AND d.extracted_data->>'siret' IS NOT NULL""",
-                (client_id, doc_id),
-            )
-            for row in cur.fetchall():
-                if row["other_siret"] and row["other_siret"] != siret:
-                    anomalies.append((
-                        "siret_mismatch", "high",
-                        f"SIRET différent du document '{row['filename']}' ({row['other_siret']} vs {siret})",
-                        "siret", row["other_siret"], siret,
-                    ))
-                    break
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT siret, siren, tva_intracom FROM client WHERE id_client = %s", (client_id,))
+        client_row = cur.fetchone() or {}
+
+    # A. Document vs Client (client = référence)
+    for field_key in _CLIENT_COMPARABLE_FIELDS:
+        doc_val = fields.get(field_key)
+        client_val = client_row.get(field_key)
+        if doc_val and client_val and doc_val != client_val:
+            label = _FIELD_LABELS.get(field_key, field_key)
+            anomalies.append((
+                "client_mismatch", "high",
+                f"{label} du document ({doc_val}) différent de la fiche client ({client_val})",
+                field_key, client_val, doc_val,
+            ))
+
+    # B. Inter-documents : SIRET facture vs attestation_siret
+    if doc_type in ("facture", "attestation_siret"):
+        other_type = "attestation_siret" if doc_type == "facture" else "facture"
+        doc_siret = fields.get("siret")
+        if doc_siret:
+            with get_db() as conn:
+                cur = conn.cursor()
+                cur.execute(
+                    """SELECT d.filename, d.extracted_data->>'siret' AS other_siret
+                       FROM document d
+                       WHERE d.id_client = %s AND d.id_document != %s
+                             AND d.type_document = %s
+                             AND d.extracted_data->>'siret' IS NOT NULL""",
+                    (client_id, doc_id, other_type),
+                )
+                for row in cur.fetchall():
+                    if row["other_siret"] and row["other_siret"] != doc_siret:
+                        anomalies.append((
+                            "inter_doc_siret", "high",
+                            f"SIRET différent de {row['filename']} ({row['other_siret']})",
+                            "siret", row["other_siret"], doc_siret,
+                        ))
+                        break
+
+    # C. Date d'expiration dépassée
+    date_exp = fields.get("date_expiration")
+    if date_exp:
+        from datetime import datetime, date
+        for fmt in ["%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y", "%d/%m/%y", "%d-%m-%y"]:
+            try:
+                exp = datetime.strptime(date_exp.strip(), fmt).date()
+                if exp < date.today():
+                    days = (date.today() - exp).days
+                    anomalies.append(("date_expired", "high",
+                        f"Document expiré depuis {days} jours (expiration : {date_exp})",
+                        "date_expiration", "", date_exp))
+                break
+            except ValueError:
+                continue
 
     if anomalies:
         with get_db() as conn:
@@ -346,6 +441,34 @@ def _generate_incoherences(doc_id: int, doc_type: str, fields: dict, client_id: 
                        VALUES (%s,%s,%s,%s,%s,%s,%s)""",
                     (doc_id, type_inc, severity, message, field, expected, actual),
                 )
+
+    return len(anomalies)
+
+
+def _recheck_document(doc_id: int, client_id: int):
+    """Supprime les anciennes incohérences, en génère de nouvelles, et recalcule le statut."""
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT type_document, extracted_data, ocr_confidence FROM document WHERE id_document = %s", (doc_id,))
+        doc = cur.fetchone()
+    if not doc or not doc.get("extracted_data"):
+        return
+
+    fields = doc["extracted_data"]
+    if isinstance(fields, str):
+        fields = json.loads(fields)
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM incoherence WHERE id_document = %s", (doc_id,))
+
+    nb = _generate_incoherences(doc_id, doc["type_document"], fields, client_id)
+    confidence = float(doc["ocr_confidence"]) if doc.get("ocr_confidence") is not None else 100.0
+    new_status = _evaluate_status(confidence, doc["type_document"], fields, doc_id)
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE document SET statut = %s WHERE id_document = %s", (new_status, doc_id))
 
 
 def _luhn_check(siret: str) -> bool:
@@ -360,24 +483,30 @@ def _luhn_check(siret: str) -> bool:
     return total % 10 == 0
 
 
-def _evaluate_status(confidence: float, doc_type: str, fields: dict) -> str:
+SCHEMAS: dict[str, list[str]] = {
+    "facture": ["siret", "siren", "tva_intracom", "montant_ht", "montant_ttc", "taux_tva", "date_emission", "numero_document"],
+    "devis": ["siret", "siren", "montant_ht", "montant_ttc", "taux_tva", "date_emission", "numero_document"],
+    "urssaf": ["siret", "date_emission", "date_expiration"],
+    "attestation_vigilance": ["siret", "date_emission", "date_expiration"],
+    "attestation_siret": ["siret", "siren", "raison_sociale"],
+    "kbis": ["siret", "siren", "raison_sociale"],
+    "rib": ["iban", "bic", "raison_sociale"],
+}
+
+
+def _evaluate_status(confidence: float, doc_type: str, fields: dict, doc_id: int | None = None) -> str:
     if confidence < 70:
         return "manual_review"
-    
-    # Règles de validation : champs obligatoires selon le type
-    if doc_type == "facture":
-        mandatory = ["montant_ht", "montant_ttc", "siret", "date_emission"]
-        if any(not fields.get(f) for f in mandatory):
-            return "manual_review"
-            
-    elif doc_type == "devis":
-        mandatory = ["montant_ht", "montant_ttc", "siret"]
-        if any(not fields.get(f) for f in mandatory):
-            return "manual_review"
-            
-    elif doc_type in ["attestation_vigilance", "urssaf"]:
-        mandatory = ["siret", "date_expiration"]
-        if any(not fields.get(f) for f in mandatory):
-            return "manual_review"
+
+    expected = SCHEMAS.get(doc_type, list(fields.keys()))
+    if any(not fields.get(f) for f in expected):
+        return "manual_review"
+
+    if doc_id is not None:
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) AS n FROM incoherence WHERE id_document = %s AND resolved = FALSE", (doc_id,))
+            if cur.fetchone()["n"] > 0:
+                return "manual_review"
 
     return "processed"

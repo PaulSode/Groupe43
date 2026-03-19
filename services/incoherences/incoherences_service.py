@@ -37,11 +37,10 @@ def get_incoherences_by_document(doc_id: int, _user: dict = Depends(get_current_
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
-            "SELECT * FROM incoherence WHERE id_document = %s ORDER BY date_detection DESC",
+            "SELECT * FROM incoherence WHERE id_document = %s AND resolved = FALSE ORDER BY date_detection DESC",
             (doc_id,),
         )
         return [_row_to_incoherence(r) for r in cur.fetchall()]
-
 
 @router.post("/incoherences/{inc_id}/resolve", status_code=200)
 def resolve_incoherence(inc_id: int, _user: dict = Depends(get_current_user)):

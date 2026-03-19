@@ -98,7 +98,21 @@ def update_client(client_id: int, data: ClientUpdate, _user: dict = Depends(get_
 
     if not row:
         raise HTTPException(404, "Client introuvable")
+
+    _recheck_all_client_documents(client_id)
+
     return _row_to_client(row)
+
+
+def _recheck_all_client_documents(client_id: int):
+    from documents.documents_service import _recheck_document
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_document FROM document WHERE id_client = %s AND extracted_data IS NOT NULL", (client_id,))
+        doc_ids = [r["id_document"] for r in cur.fetchall()]
+
+    for doc_id in doc_ids:
+        _recheck_document(doc_id, client_id)
 
 
 @router.delete("/{client_id}", status_code=204)

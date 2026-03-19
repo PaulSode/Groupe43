@@ -145,6 +145,7 @@ class DocumentResponse(BaseModel):
 
 class DocumentStatusUpdate(BaseModel):
     status: str
+    extractedData: Optional[dict[str, Any]] = None
 
 
 # ─────────────────────────────────────────────
@@ -161,6 +162,11 @@ class IncoherenceResponse(BaseModel):
     expectedValue: Optional[str] = None
     actualValue: Optional[str] = None
     dateDetection: str
+
+
+class DocumentWithIncoherencesResponse(BaseModel):
+    document: DocumentResponse
+    incoherences: List[IncoherenceResponse]
 
 
 # ─────────────────────────────────────────────

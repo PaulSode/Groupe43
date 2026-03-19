@@ -33,7 +33,7 @@ CREATE TABLE client (
 CREATE TABLE document (
     id_document     SERIAL PRIMARY KEY,
     type_document   VARCHAR(30) NOT NULL,
-    id_client       INT REFERENCES client(id_client) ON DELETE SET NULL,
+    id_client       INT NOT NULL REFERENCES client(id_client) ON DELETE CASCADE,
     filename        VARCHAR(255) NOT NULL,
     file_path       TEXT,
     ocr_file_id     VARCHAR(50),

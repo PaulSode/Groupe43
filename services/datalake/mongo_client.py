@@ -56,6 +56,7 @@ def _guess_content_type(filename: str) -> str:
         ".jpeg": "image/jpeg",
         ".tiff": "image/tiff",
         ".bmp": "image/bmp",
+        ".pdf": "application/pdf",
     }.get(ext, "application/octet-stream")
 
 
