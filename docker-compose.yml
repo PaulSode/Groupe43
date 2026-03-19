@@ -49,7 +49,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - uploads_data:/app/uploads
+      - uploads_data:/uploads
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASS=${POSTGRES_PASS}
