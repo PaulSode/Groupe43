@@ -4,6 +4,7 @@ import { Document, Incoherence, DocumentType } from '../types';
 import DocumentViewer from '../components/DocumentViewer';
 import OcrConfidenceBadge from '../components/OcrConfidenceBadge';
 import IncoherenceAlert from '../components/IncoherenceAlert';
+import { DocumentFilePreview } from '../components/DocumentFilePreview';
 import './Documents.css';
 
 const Documents: React.FC = () => {
@@ -110,6 +111,27 @@ const Documents: React.FC = () => {
     return <span className={`status-badge ${badge.className}`}>{badge.label}</span>;
   };
 
+  const getCompletionStats = (type: string, extractedData?: Record<string, any>) => {
+    const schema = (() => {
+      switch (type.toLowerCase()) {
+        case 'facture': return ['siret', 'siren', 'tva_intracom', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'];
+        case 'devis': return ['siret', 'siren', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'];
+        case 'urssaf': return ['siret', 'date_emission', 'date_expiration'];
+        case 'kbis': return ['siret', 'siren', 'raison_sociale'];
+        case 'rib': return ['iban', 'bic', 'raison_sociale'];
+        default: return Object.keys(extractedData || {});
+      }
+    })();
+
+    const total = schema.length;
+    const filled = schema.filter(key => {
+      const val = extractedData?.[key];
+      return val !== null && val !== undefined && val !== '';
+    }).length;
+
+    return { total, filled, isComplete: total > 0 && total === filled };
+  };
+
   if (loading) {
     return (
       <div className="documents-container">
@@ -174,20 +196,33 @@ const Documents: React.FC = () => {
         {filteredDocuments.map(doc => (
           <div key={doc.id} className="document-card">
             <div className="document-header">
-              <div className="document-type-badge">
-                {getTypeLabel(doc.type)}
+              <div className="document-type-badge" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span>{getTypeLabel(doc.type)}</span>
+                {(() => {
+                  const stats = getCompletionStats(doc.type, doc.extractedData);
+                  if (stats.total === 0) return null;
+                  return (
+                    <span style={{
+                      backgroundColor: stats.isComplete ? '#d4edda' : '#fff3cd',
+                      color: stats.isComplete ? '#155724' : '#856404',
+                      padding: '2px 6px',
+                      borderRadius: '10px',
+                      fontSize: '0.85em',
+                      fontWeight: 'bold'
+                    }}>
+                      {stats.filled}/{stats.total}
+                    </span>
+                  );
+                })()}
               </div>
-              {doc.ocrConfidence !== undefined && (
+              {typeof doc.ocrConfidence === 'number' && (
                 <OcrConfidenceBadge confidence={doc.ocrConfidence} />
               )}
             </div>
 
             <div className="document-body">
-              <div className="document-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
+              <div className="document-icon" style={{ height: '140px', overflow: 'hidden', padding: '0' }}>
+                <DocumentFilePreview docId={doc.id} filename={doc.filename} />
               </div>
               <h3 className="document-filename">{doc.filename}</h3>
               <p className="document-client">{doc.clientNom}</p>

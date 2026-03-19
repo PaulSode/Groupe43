@@ -250,6 +250,13 @@ export const documentsAPI = {
     return response.data;
   },
 
+  getFile: async (id: string): Promise<Blob> => {
+    const response = await apiClient.get(`/documents/${id}/file`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
   getByClient: async (clientId: string): Promise<Document[]> => {
     const response = await apiClient.get(`/clients/${clientId}/documents`);
     return response.data;

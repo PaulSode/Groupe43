@@ -3,6 +3,9 @@ import json
 import shutil
 import uuid
 from typing import List, Optional
+from fastapi.responses import Response
+import gridfs
+from datalake.mongo_client import get_db as get_mongo_db
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 
@@ -97,6 +100,31 @@ def get_documents_by_client(client_id: int, _user: dict = Depends(get_current_us
         cur.execute(f"{_SELECT_DOC} WHERE d.id_client = %s ORDER BY d.date_upload DESC", (client_id,))
         return [_row_to_document(r) for r in cur.fetchall()]
 
+@router.get("/documents/{doc_id}/file")
+def get_document_file(doc_id: int, _user: dict = Depends(get_current_user)):
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT ocr_file_id, file_path FROM document WHERE id_document = %s", (doc_id,))
+        row = cur.fetchone()
+
+    if not row:
+        raise HTTPException(404, "Document introuvable")
+
+    if row.get("ocr_file_id"):
+        db_mongo = get_mongo_db()
+        fs = gridfs.GridFS(db_mongo, collection="images_raw")
+        grid_out = fs.find_one({"file_id": row["ocr_file_id"]})
+        if grid_out:
+            return Response(content=grid_out.read(), media_type=grid_out.content_type)
+
+    if row.get("file_path") and os.path.exists(row["file_path"]):
+        with open(row["file_path"], "rb") as f:
+            ext = os.path.splitext(row["file_path"])[1].lower()
+            mt = "application/pdf" if ext == ".pdf" else f"image/{ext.replace('.', '')}"
+            return Response(content=f.read(), media_type=mt)
+
+    raise HTTPException(404, "Fichier source introuvable")
+
 
 @router.post("/documents/upload", response_model=List[DocumentResponse])
 async def upload_documents(
@@ -133,7 +161,7 @@ async def upload_documents(
             fields = extractor.extract(raw_text, detected_type)
 
             confidence = float(confidence)
-            statut = "processed" if confidence >= 70 else "manual_review"
+            statut = _evaluate_status(confidence, detected_type.value, fields.model_dump())
 
             save_raw_document(file_id, uploaded_file.filename, file_path, raw_text)
             save_extracted_data(file_id, uploaded_file.filename, detected_type.value, raw_text, fields.model_dump())
@@ -213,7 +241,7 @@ def reprocess_document(doc_id: int, _user: dict = Depends(get_current_user)):
     detected_type = classifier.classify(raw_text)
     fields = extractor.extract(raw_text, detected_type)
 
-    statut = "processed" if confidence >= 70 else "manual_review"
+    statut = _evaluate_status(confidence, detected_type.value, fields.model_dump())
     file_id = doc.get("ocr_file_id") or str(uuid.uuid4())
 
     save_raw_document(file_id, doc["filename"], doc["file_path"], raw_text)
@@ -330,3 +358,26 @@ def _luhn_check(siret: str) -> bool:
                 n -= 9
         total += n
     return total % 10 == 0
+
+
+def _evaluate_status(confidence: float, doc_type: str, fields: dict) -> str:
+    if confidence < 70:
+        return "manual_review"
+    
+    # Règles de validation : champs obligatoires selon le type
+    if doc_type == "facture":
+        mandatory = ["montant_ht", "montant_ttc", "siret", "date_emission"]
+        if any(not fields.get(f) for f in mandatory):
+            return "manual_review"
+            
+    elif doc_type == "devis":
+        mandatory = ["montant_ht", "montant_ttc", "siret"]
+        if any(not fields.get(f) for f in mandatory):
+            return "manual_review"
+            
+    elif doc_type in ["attestation_vigilance", "urssaf"]:
+        mandatory = ["siret", "date_expiration"]
+        if any(not fields.get(f) for f in mandatory):
+            return "manual_review"
+
+    return "processed"
