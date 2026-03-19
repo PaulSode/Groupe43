@@ -31,7 +31,6 @@ const ClientViewer: React.FC<ClientViewerProps> = ({ client, onClose }) => {
   }, [client.id]);
 
   const handleViewDocument = async (doc: Document) => {
-    setSelectedDocument(doc);
     try {
       const data = await incoherencesAPI.getByDocument(doc.id);
       setIncoherences(data);
@@ -39,6 +38,7 @@ const ClientViewer: React.FC<ClientViewerProps> = ({ client, onClose }) => {
       console.error('Erreur lors du chargement des incohérences', error);
       setIncoherences([]);
     }
+    setSelectedDocument(doc);
   };
 
   const handleCloseViewer = () => {
@@ -53,9 +53,11 @@ const ClientViewer: React.FC<ClientViewerProps> = ({ client, onClose }) => {
       kbis: 'Kbis',
       urssaf: 'URSSAF',
       rib: 'RIB',
-      siret: 'SIRET',
+      attestation_siret: 'Attestation SIRET',
+      attestation_vigilance: 'Attestation vigilance',
+      inconnu: 'Inconnu',
     };
-    return labels[type];
+    return labels[type] || type;
   };
 
   const getStatusLabel = (statut: Document['statut']) => {
@@ -169,6 +171,11 @@ const ClientViewer: React.FC<ClientViewerProps> = ({ client, onClose }) => {
           document={selectedDocument}
           incoherences={incoherences}
           onClose={handleCloseViewer}
+          onDocumentUpdated={(updatedDoc, newIncs) => {
+            setDocuments(prev => prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
+            setSelectedDocument(updatedDoc);
+            setIncoherences(newIncs);
+          }}
         />
       )}
     </>

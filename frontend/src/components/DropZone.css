@@ -17,6 +17,12 @@
   border-width: 3px;
 }
 
+.dropzone.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .dropzone-content {
   display: flex;
   flex-direction: column;

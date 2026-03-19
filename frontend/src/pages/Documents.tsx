@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { documentsAPI, incoherencesAPI } from '../api/client';
 import { Document, Incoherence, DocumentType } from '../types';
 import DocumentViewer from '../components/DocumentViewer';
 import OcrConfidenceBadge from '../components/OcrConfidenceBadge';
-import IncoherenceAlert from '../components/IncoherenceAlert';
 import { DocumentFilePreview } from '../components/DocumentFilePreview';
 import './Documents.css';
 
 const Documents: React.FC = () => {
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [filteredDocuments, setFilteredDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-  const [incoherences, setIncoherences] = useState<Incoherence[]>([]);
+  const [selectedIncoherences, setSelectedIncoherences] = useState<Incoherence[]>([]);
+  const [allIncoherences, setAllIncoherences] = useState<Incoherence[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<DocumentType | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<Document['statut'] | 'all'>('all');
@@ -19,6 +21,7 @@ const Documents: React.FC = () => {
 
   useEffect(() => {
     loadDocuments();
+    loadAllIncoherences();
   }, []);
 
   useEffect(() => {
@@ -35,6 +38,18 @@ const Documents: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const loadAllIncoherences = async () => {
+    try {
+      const data = await incoherencesAPI.getAll();
+      setAllIncoherences(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des incohérences', error);
+    }
+  };
+
+  const getDocIncoherences = (docId: string) =>
+    allIncoherences.filter(i => i.documentId === docId);
 
   const filterDocumentsList = () => {
     let filtered = documents;
@@ -59,13 +74,14 @@ const Documents: React.FC = () => {
   };
 
   const handleViewDocument = async (doc: Document) => {
-    setSelectedDocument(doc);
     try {
       const docIncoherences = await incoherencesAPI.getByDocument(doc.id);
-      setIncoherences(docIncoherences);
+      setSelectedIncoherences(docIncoherences);
     } catch (error) {
       console.error('Erreur lors du chargement des incohérences', error);
+      setSelectedIncoherences([]);
     }
+    setSelectedDocument(doc);
   };
 
   const handleReprocess = async (id: string) => {
@@ -95,9 +111,11 @@ const Documents: React.FC = () => {
       kbis: 'Kbis',
       urssaf: 'URSSAF',
       rib: 'RIB',
-      siret: 'SIRET',
+      attestation_siret: 'Attestation SIRET',
+      attestation_vigilance: 'Attestation vigilance',
+      inconnu: 'Inconnu',
     };
-    return labels[type];
+    return labels[type] || type;
   };
 
   const getStatusBadge = (statut: Document['statut']) => {
@@ -116,9 +134,11 @@ const Documents: React.FC = () => {
       switch (type.toLowerCase()) {
         case 'facture': return ['siret', 'siren', 'tva_intracom', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'];
         case 'devis': return ['siret', 'siren', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'];
-        case 'urssaf': return ['siret', 'date_emission', 'date_expiration'];
+        case 'urssaf':
+        case 'attestation_vigilance': return ['siret', 'date_emission', 'date_expiration'];
         case 'kbis': return ['siret', 'siren', 'raison_sociale'];
         case 'rib': return ['iban', 'bic', 'raison_sociale'];
+        case 'attestation_siret': return ['siret', 'siren', 'raison_sociale'];
         default: return Object.keys(extractedData || {});
       }
     })();
@@ -175,7 +195,9 @@ const Documents: React.FC = () => {
             <option value="kbis">Kbis</option>
             <option value="urssaf">URSSAF</option>
             <option value="rib">RIB</option>
-            <option value="siret">SIRET</option>
+            <option value="attestation_siret">Attestation SIRET</option>
+            <option value="attestation_vigilance">Attestation vigilance</option>
+            <option value="inconnu">Inconnu</option>
           </select>
 
           <select
@@ -233,6 +255,21 @@ const Documents: React.FC = () => {
               )}
             </div>
 
+            {(() => {
+              const docIncs = getDocIncoherences(doc.id);
+              if (docIncs.length === 0) return null;
+              return (
+                <div className="card-incoherences">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <span>{docIncs.length} incohérence{docIncs.length > 1 ? 's' : ''}</span>
+                </div>
+              );
+            })()}
+
             <div className="document-footer">
               <div className="document-status">
                 {getStatusBadge(doc.statut)}
@@ -248,6 +285,18 @@ const Documents: React.FC = () => {
                     <circle cx="12" cy="12" r="3"></circle>
                   </svg>
                 </button>
+                {doc.statut === 'manual_review' && (
+                  <button
+                    onClick={() => navigate('/traitement-manuel')}
+                    className="btn-icon btn-manual"
+                    title="Traitement manuel"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                )}
                 {(doc.statut === 'error' || doc.statut === 'manual_review') && (
                   <button
                     onClick={() => handleReprocess(doc.id)}
@@ -289,8 +338,17 @@ const Documents: React.FC = () => {
       {selectedDocument && (
         <DocumentViewer
           document={selectedDocument}
-          incoherences={incoherences}
+          incoherences={selectedIncoherences}
           onClose={() => setSelectedDocument(null)}
+          onDocumentUpdated={(updatedDoc, newIncs) => {
+            setDocuments(prev => prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
+            setAllIncoherences(prev => [
+              ...prev.filter(i => i.documentId !== updatedDoc.id),
+              ...newIncs,
+            ]);
+            setSelectedDocument(updatedDoc);
+            setSelectedIncoherences(newIncs);
+          }}
         />
       )}
     </div>

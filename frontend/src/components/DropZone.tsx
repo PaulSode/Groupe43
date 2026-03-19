@@ -3,15 +3,16 @@ import './DropZone.css';
 
 interface DropZoneProps {
   onFilesSelected: (files: File[]) => void;
+  disabled?: boolean;
 }
 
-const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected }) => {
+const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected, disabled }) => {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(true);
-  }, []);
+    if (!disabled) setIsDragging(true);
+  }, [disabled]);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -21,6 +22,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected }) => {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    if (disabled) return;
 
     const files = Array.from(e.dataTransfer.files);
     const validFiles = files.filter(file =>
@@ -31,18 +33,19 @@ const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected }) => {
     if (validFiles.length > 0) {
       onFilesSelected(validFiles);
     }
-  }, [onFilesSelected]);
+  }, [onFilesSelected, disabled]);
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return;
     if (e.target.files) {
       const files = Array.from(e.target.files);
       onFilesSelected(files);
     }
-  }, [onFilesSelected]);
+  }, [onFilesSelected, disabled]);
 
   return (
     <div
-      className={`dropzone ${isDragging ? 'dragging' : ''}`}
+      className={`dropzone ${isDragging ? 'dragging' : ''} ${disabled ? 'disabled' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -53,6 +56,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onFilesSelected }) => {
         multiple
         accept=".pdf,image/*"
         onChange={handleFileInput}
+        disabled={disabled}
         style={{ display: 'none' }}
       />
       

@@ -9,7 +9,6 @@ const Upload: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showClientSearch, setShowClientSearch] = useState(false);
 
   const searchClients = useCallback(async (query: string) => {
     if (query.length < 2) {
@@ -25,42 +24,38 @@ const Upload: React.FC = () => {
   }, []);
 
   const handleFilesSelected = async (files: File[]) => {
+    if (!selectedClient) return;
+
+    const baseIndex = uploads.length;
     const newUploads: UploadStatus[] = files.map(file => ({
       filename: file.name,
       status: 'uploading',
       progress: 0,
     }));
-
     setUploads(prev => [...prev, ...newUploads]);
 
-    try {
-      const uploadedDocs = await documentsAPI.upload(
-        files,
-        selectedClient || undefined
-      );
+    for (let i = 0; i < files.length; i++) {
+      const idx = baseIndex + i;
 
-      setUploads(prev =>
-        prev.map((upload, index) => {
-          const doc = uploadedDocs[index];
-          if (doc) {
-            return {
-              ...upload,
-              status: 'success',
-              progress: 100,
-              documentId: doc.id,
-            };
-          }
-          return upload;
-        })
-      );
-    } catch (error) {
-      setUploads(prev =>
-        prev.map(upload => ({
-          ...upload,
-          status: 'error',
-          error: 'Erreur lors de l\'upload',
-        }))
-      );
+      const updateItem = (patch: Partial<UploadStatus>) =>
+        setUploads(prev => prev.map((u, j) => (j === idx ? { ...u, ...patch } : u)));
+
+      try {
+        updateItem({ status: 'uploading', progress: 0 });
+
+        const doc = await documentsAPI.uploadSingle(
+          files[i],
+          selectedClient,
+          (pct) => updateItem({ progress: Math.round(pct * 0.5) }),
+        );
+
+        updateItem({ status: 'processing', progress: 50 });
+
+        await new Promise(r => setTimeout(r, 400));
+        updateItem({ progress: 100, status: 'success', documentId: doc.id });
+      } catch {
+        updateItem({ status: 'error', progress: 0, error: 'Erreur lors du traitement' });
+      }
     }
   };
 
@@ -112,24 +107,7 @@ const Upload: React.FC = () => {
       <div className="upload-content">
         <div className="upload-options">
           <div className="option-group">
-            <label>
-              <input
-                type="checkbox"
-                checked={showClientSearch}
-                onChange={(e) => {
-                  setShowClientSearch(e.target.checked);
-                  if (!e.target.checked) {
-                    setSelectedClient('');
-                    setSearchQuery('');
-                    setClients([]);
-                  }
-                }}
-              />
-              <span>Associer à un client existant</span>
-            </label>
-          </div>
-
-          {showClientSearch && (
+            <label className="required-label">Client associé (obligatoire)</label>
             <div className="client-search">
               <input
                 type="text"
@@ -138,6 +116,7 @@ const Upload: React.FC = () => {
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   searchClients(e.target.value);
+                  if (e.target.value === '') setSelectedClient('');
                 }}
               />
               {clients.length > 0 && (
@@ -162,11 +141,14 @@ const Upload: React.FC = () => {
                   ))}
                 </div>
               )}
+              {!selectedClient && (
+                <p className="help-text">Veuillez sélectionner un client avant d'importer des documents.</p>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        <DropZone onFilesSelected={handleFilesSelected} />
+        <DropZone onFilesSelected={handleFilesSelected} disabled={!selectedClient} />
 
         {uploads.length > 0 && (
           <div className="uploads-list">
@@ -184,12 +166,18 @@ const Upload: React.FC = () => {
                   </div>
                   <div className="upload-info">
                     <div className="upload-filename">{upload.filename}</div>
-                    {upload.error && (
-                      <div className="upload-error">{upload.error}</div>
-                    )}
-                    {upload.status === 'success' && (
-                      <div className="upload-success">Traitement en cours...</div>
-                    )}
+                    <div className="upload-status-label">
+                      {upload.status === 'uploading' && 'Envoi en cours...'}
+                      {upload.status === 'processing' && 'Analyse OCR en cours...'}
+                      {upload.status === 'success' && 'Traitement terminé'}
+                      {upload.status === 'error' && upload.error}
+                    </div>
+                    <div className="upload-progress-bar">
+                      <div
+                        className={`upload-progress-fill ${upload.status}`}
+                        style={{ width: `${upload.progress}%` }}
+                      />
+                    </div>
                   </div>
                   <div className="upload-progress">
                     {upload.progress}%

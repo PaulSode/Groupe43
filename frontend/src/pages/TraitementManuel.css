@@ -219,6 +219,55 @@
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+.form-group-warning {
+  border-left: 3px solid #f59e0b;
+  padding-left: 12px;
+}
+
+.field-warning {
+  color: #f59e0b;
+  margin-left: 4px;
+}
+
+.field-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.field-row input {
+  flex: 1;
+}
+
+.btn-use-client {
+  padding: 8px 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.btn-use-client:hover {
+  background: #1d4ed8;
+}
+
+.field-inc-message {
+  color: #f59e0b;
+  font-size: 12px;
+}
+
+.no-fields-message {
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  padding: 24px;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

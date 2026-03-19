@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Document, Incoherence } from '../types';
 import IncoherenceAlert from './IncoherenceAlert';
 import OcrConfidenceBadge from './OcrConfidenceBadge';
-import { incoherencesAPI } from '../api/client';
+import { documentsAPI } from '../api/client';
 import { DocumentFilePreview } from './DocumentFilePreview';
 import './DocumentViewer.css';
 
@@ -10,58 +10,73 @@ interface DocumentViewerProps {
   document: Document;
   incoherences: Incoherence[];
   onClose: () => void;
+  onDocumentUpdated?: (doc: Document, incs: Incoherence[]) => void;
 }
 
-const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, incoherences, onClose }) => {
-  const handleResolveIncoherence = async (id: string) => {
+const SCHEMAS: Record<string, string[]> = {
+  facture: ['siret', 'siren', 'tva_intracom', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'],
+  devis: ['siret', 'siren', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'],
+  urssaf: ['siret', 'date_emission', 'date_expiration'],
+  attestation_vigilance: ['siret', 'date_emission', 'date_expiration'],
+  attestation_siret: ['siret', 'siren', 'raison_sociale'],
+  kbis: ['siret', 'siren', 'raison_sociale'],
+  rib: ['iban', 'bic', 'raison_sociale'],
+};
+
+const DocumentViewer: React.FC<DocumentViewerProps> = ({ document: doc, incoherences: initialIncoherences, onClose, onDocumentUpdated }) => {
+  const [editedData, setEditedData] = useState<Record<string, string>>(doc.extractedData || {});
+  const [liveIncoherences, setLiveIncoherences] = useState(initialIncoherences);
+  const [currentDoc, setCurrentDoc] = useState(doc);
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const expectedKeys = SCHEMAS[doc.type.toLowerCase()] || Object.keys(doc.extractedData || {});
+
+  const { totalFields, filledFields, isComplete } = useMemo(() => {
+    const total = expectedKeys.length;
+    const filled = expectedKeys.filter(k => {
+      const v = editedData[k];
+      return v !== null && v !== undefined && v !== '';
+    }).length;
+    return { totalFields: total, filledFields: filled, isComplete: total > 0 && filled === total };
+  }, [expectedKeys, editedData]);
+
+  const handleFix = (field: string, expectedValue: string, _incId: string) => {
+    setEditedData(prev => ({ ...prev, [field]: expectedValue }));
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
     try {
-      await incoherencesAPI.resolve(id);
-      window.location.reload();
-    } catch (error) {
-      console.error('Erreur lors de la résolution', error);
+      const resp = await documentsAPI.updateStatus(currentDoc.id, currentDoc.statut, editedData);
+      setCurrentDoc(resp.document);
+      setLiveIncoherences(resp.incoherences);
+      setEditedData(resp.document.extractedData || editedData);
+      setDirty(false);
+      onDocumentUpdated?.(resp.document, resp.incoherences);
+    } catch (err) {
+      console.error('Erreur lors de la sauvegarde', err);
+    } finally {
+      setSaving(false);
     }
   };
-
-  const getSchema = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'facture':
-        return ['siret', 'siren', 'tva_intracom', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'];
-      case 'devis':
-        return ['siret', 'siren', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'];
-      case 'urssaf':
-        return ['siret', 'date_emission', 'date_expiration'];
-      case 'kbis':
-        return ['siret', 'siren', 'raison_sociale'];
-      case 'rib':
-        return ['iban', 'bic', 'raison_sociale'];
-      default:
-        return Object.keys(document.extractedData || {});
-    }
-  };
-
-  const expectedKeys = getSchema(document.type);
-  const totalFields = expectedKeys.length;
-  const filledFields = expectedKeys.filter(key => {
-    const val = document?.extractedData?.[key];
-    return val !== null && val !== undefined && val !== '';
-  }).length;
-  const isComplete = totalFields > 0 && filledFields === totalFields;
 
   return (
     <div className="viewer-overlay" onClick={onClose}>
       <div className="viewer-container" onClick={(e) => e.stopPropagation()}>
         <div className="viewer-header">
           <div className="viewer-title">
-            <h2>{document.filename}</h2>
+            <h2>{currentDoc.filename}</h2>
             <div className="viewer-meta">
-              <span className="meta-item">{document.clientNom}</span>
-              {document.dateEmission && (
+              <span className="meta-item">{currentDoc.clientNom}</span>
+              {currentDoc.dateEmission && (
                 <span className="meta-item">
-                  Émis le {new Date(document.dateEmission).toLocaleDateString('fr-FR')}
+                  Émis le {new Date(currentDoc.dateEmission).toLocaleDateString('fr-FR')}
                 </span>
               )}
-              {typeof document.ocrConfidence === 'number' && (
-                <OcrConfidenceBadge confidence={document.ocrConfidence} />
+              {typeof currentDoc.ocrConfidence === 'number' && (
+                <OcrConfidenceBadge confidence={currentDoc.ocrConfidence} />
               )}
               {totalFields > 0 && (
                 <span className="meta-item" style={{
@@ -89,66 +104,88 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, incoherences,
         <div className="viewer-body">
           <div className="viewer-main">
             <div className="document-preview" style={{ width: '100%', height: '100%', backgroundColor: '#f8f9fa' }}>
-               <DocumentFilePreview docId={document.id} filename={document.filename} className="document-iframe" />
+               <DocumentFilePreview docId={currentDoc.id} filename={currentDoc.filename} className="document-iframe" />
             </div>
           </div>
 
           <div className="viewer-sidebar">
-            {incoherences.length > 0 && (
+            {liveIncoherences.length > 0 && (
               <IncoherenceAlert
-                incoherences={incoherences}
-                onResolve={handleResolveIncoherence}
+                incoherences={liveIncoherences}
+                onFix={handleFix}
               />
             )}
 
-            {document.extractedData && (
-              <div className="extracted-data">
-                <h3>Données extraites</h3>
-                <div className="data-list">
-                  {expectedKeys.map((key) => {
-                    const value = document.extractedData?.[key];
-                    const isMissing = value === null || value === undefined || value === '';
-                    
-                    return (
-                      <div key={key} className="data-item">
-                        <span className="data-label" style={{ textTransform: 'capitalize' }}>
-                          {key.replace(/_/g, ' ')}
-                        </span>
-                        <span className="data-value" style={{ 
-                          color: isMissing ? '#dc3545' : 'inherit',
-                          fontWeight: isMissing ? 'bold' : 'normal'
-                        }}>
-                          {isMissing ? 'NON DÉTECTÉ' : String(value)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+            <div className="extracted-data">
+              <h3>Données extraites</h3>
+              <div className="data-list">
+                {expectedKeys.map((key) => {
+                  const value = editedData[key];
+                  const isMissing = value === null || value === undefined || value === '';
+                  const fieldInc = liveIncoherences.find(i => i.field === key);
+                  const hasIncoherence = !!fieldInc;
+
+                  const tooltipText = fieldInc
+                    ? fieldInc.type === 'client_mismatch'
+                      ? `Différent des données du client (${fieldInc.expectedValue})`
+                      : fieldInc.message
+                    : '';
+
+                  return (
+                    <div key={key} className={`data-item ${hasIncoherence ? 'data-item-warning' : ''}`}>
+                      <span className="data-label">
+                        {key.replace(/_/g, ' ')}
+                      </span>
+                      <span className={`data-value ${isMissing ? 'data-value-missing' : ''} ${hasIncoherence ? 'data-value-warning' : ''}`}>
+                        {hasIncoherence && (
+                          <span className="warning-triangle" title={tooltipText}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                              <line x1="12" y1="9" x2="12" y2="13" stroke="white" strokeWidth="2"></line>
+                              <line x1="12" y1="17" x2="12.01" y2="17" stroke="white" strokeWidth="2"></line>
+                            </svg>
+                          </span>
+                        )}
+                        {isMissing ? 'NON DÉTECTÉ' : value}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            )}
+
+              {dirty && (
+                <button
+                  className="btn-save-data"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? 'Sauvegarde...' : 'Sauvegarder les modifications'}
+                </button>
+              )}
+            </div>
 
             <div className="document-info">
               <h3>Informations</h3>
               <div className="info-list">
                 <div className="info-item">
                   <span className="info-label">Type</span>
-                  <span className="info-value">{document.type}</span>
+                  <span className="info-value">{currentDoc.type}</span>
                 </div>
                 <div className="info-item">
                   <span className="info-label">Statut</span>
-                  <span className="info-value">{document.statut}</span>
+                  <span className="info-value">{currentDoc.statut}</span>
                 </div>
                 <div className="info-item">
                   <span className="info-label">Date d'upload</span>
                   <span className="info-value">
-                    {new Date(document.dateUpload).toLocaleString('fr-FR')}
+                    {new Date(currentDoc.dateUpload).toLocaleString('fr-FR')}
                   </span>
                 </div>
-                {document.dateExpiration && (
+                {currentDoc.dateExpiration && (
                   <div className="info-item">
                     <span className="info-label">Date d'expiration</span>
                     <span className="info-value">
-                      {new Date(document.dateExpiration).toLocaleDateString('fr-FR')}
+                      {new Date(currentDoc.dateExpiration).toLocaleDateString('fr-FR')}
                     </span>
                   </div>
                 )}

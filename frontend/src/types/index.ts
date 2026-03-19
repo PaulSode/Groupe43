@@ -20,7 +20,7 @@ export interface Client {
   statut: 'actif' | 'inactif' | 'en_attente';
 }
 
-export type DocumentType = 'facture' | 'devis' | 'kbis' | 'urssaf' | 'rib' | 'siret';
+export type DocumentType = 'facture' | 'devis' | 'kbis' | 'urssaf' | 'rib' | 'attestation_siret' | 'attestation_vigilance' | 'inconnu';
 
 export interface Document {
   id: string;
@@ -37,10 +37,12 @@ export interface Document {
   url?: string;
 }
 
+export type IncoherenceType = 'client_mismatch' | 'inter_doc_siret' | 'date_expired';
+
 export interface Incoherence {
   id: string;
   documentId: string;
-  type: 'siret_mismatch' | 'date_expired' | 'tva_invalid' | 'iban_invalid' | 'montant_incoherent';
+  type: IncoherenceType;
   severity: 'low' | 'medium' | 'high';
   message: string;
   field: string;

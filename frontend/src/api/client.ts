@@ -274,8 +274,27 @@ export const documentsAPI = {
     return response.data;
   },
 
-  updateStatus: async (id: string, status: string): Promise<Document> => {
-    const response = await apiClient.patch(`/documents/${id}/status`, { status });
+  uploadSingle: async (
+    file: File,
+    clientId: string | undefined,
+    onUploadProgress: (pct: number) => void,
+  ): Promise<Document> => {
+    const formData = new FormData();
+    formData.append('files', file);
+    if (clientId) formData.append('clientId', clientId);
+    const response = await apiClient.post('/documents/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (e) => {
+        if (e.total) onUploadProgress(Math.round((e.loaded * 100) / e.total));
+      },
+    });
+    return response.data[0];
+  },
+
+  updateStatus: async (id: string, status: string, extractedData?: Record<string, string>): Promise<{ document: Document; incoherences: Incoherence[] }> => {
+    const body: Record<string, unknown> = { status };
+    if (extractedData) body.extractedData = extractedData;
+    const response = await apiClient.patch(`/documents/${id}/status`, body);
     return response.data;
   },
 

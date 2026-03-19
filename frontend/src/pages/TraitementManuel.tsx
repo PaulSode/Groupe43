@@ -1,12 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { documentsAPI } from '../api/client';
-import { Document } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { documentsAPI, incoherencesAPI } from '../api/client';
+import { Document, Incoherence } from '../types';
 import './TraitementManuel.css';
+
+const SCHEMAS: Record<string, string[]> = {
+  facture: ['siret', 'siren', 'tva_intracom', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'],
+  devis: ['siret', 'siren', 'montant_ht', 'montant_ttc', 'taux_tva', 'date_emission', 'numero_document'],
+  urssaf: ['siret', 'date_emission', 'date_expiration'],
+  attestation_vigilance: ['siret', 'date_emission', 'date_expiration'],
+  attestation_siret: ['siret', 'siren', 'raison_sociale'],
+  kbis: ['siret', 'siren', 'raison_sociale'],
+  rib: ['iban', 'bic', 'raison_sociale'],
+};
 
 const TraitementManuel: React.FC = () => {
   const [pendingDocuments, setPendingDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [incoherences, setIncoherences] = useState<Incoherence[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -25,13 +36,40 @@ const TraitementManuel: React.FC = () => {
     }
   };
 
-  const handleSelectDocument = (doc: Document) => {
+  const handleSelectDocument = async (doc: Document) => {
     setSelectedDocument(doc);
     setFormData(doc.extractedData || {});
+    try {
+      const incs = await incoherencesAPI.getByDocument(doc.id);
+      setIncoherences(incs);
+    } catch {
+      setIncoherences([]);
+    }
   };
+
+  const incFieldSet = useMemo(
+    () => new Set(incoherences.map(i => i.field)),
+    [incoherences]
+  );
+
+  const editableFields = useMemo(() => {
+    if (!selectedDocument) return [];
+    const allFields = SCHEMAS[selectedDocument.type] || Object.keys(selectedDocument.extractedData || {});
+    return allFields.filter(field => {
+      const val = selectedDocument.extractedData?.[field];
+      const isEmpty = val === null || val === undefined || val === '';
+      return isEmpty || incFieldSet.has(field);
+    });
+  }, [selectedDocument, incFieldSet]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFixWithClient = (field: string, inc: Incoherence) => {
+    if (inc.expectedValue) {
+      setFormData(prev => ({ ...prev, [field]: inc.expectedValue! }));
+    }
   };
 
   const handleSave = async () => {
@@ -39,27 +77,26 @@ const TraitementManuel: React.FC = () => {
 
     setSaving(true);
     try {
-      await documentsAPI.updateStatus(selectedDocument.id, 'processed');
-      loadPendingDocuments();
-      setSelectedDocument(null);
-      setFormData({});
+      const resp = await documentsAPI.updateStatus(selectedDocument.id, 'processed', formData);
+      const updatedDoc = resp.document;
+      const newIncs = resp.incoherences;
+
+      if (updatedDoc.statut === 'manual_review') {
+        setPendingDocuments(prev => prev.map(d => d.id === updatedDoc.id ? updatedDoc : d));
+        setSelectedDocument(updatedDoc);
+        setFormData(updatedDoc.extractedData || formData);
+        setIncoherences(newIncs);
+      } else {
+        setPendingDocuments(prev => prev.filter(d => d.id !== updatedDoc.id));
+        setSelectedDocument(null);
+        setFormData({});
+        setIncoherences([]);
+      }
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement', error);
     } finally {
       setSaving(false);
     }
-  };
-
-  const getFieldsByType = (type: Document['type']) => {
-    const fields: Record<Document['type'], string[]> = {
-      facture: ['numero', 'dateEmission', 'montantHT', 'montantTTC', 'tva', 'siret'],
-      devis: ['numero', 'dateEmission', 'dateValidite', 'montantHT', 'montantTTC', 'siret'],
-      kbis: ['denomination', 'siret', 'siren', 'formeJuridique', 'dateImmatriculation'],
-      urssaf: ['siret', 'dateEmission', 'dateExpiration', 'statut'],
-      rib: ['titulaire', 'iban', 'bic', 'banque'],
-      siret: ['siret', 'siren', 'denomination', 'adresse'],
-    };
-    return fields[type] || [];
   };
 
   if (loading) {
@@ -134,29 +171,52 @@ const TraitementManuel: React.FC = () => {
                     <line x1="12" y1="16" x2="12" y2="12"></line>
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                   </svg>
-                  <p>Vérifiez et corrigez les informations extraites automatiquement</p>
+                  <p>Seuls les champs vides ou incohérents sont affichés. Corrigez-les pour valider le document.</p>
                 </div>
 
                 <div className="form-fields">
-                  {getFieldsByType(selectedDocument.type).map(field => (
-                    <div key={field} className="form-group">
-                      <label htmlFor={field}>
-                        {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
-                      </label>
-                      <input
-                        id={field}
-                        type="text"
-                        value={formData[field] || ''}
-                        onChange={(e) => handleChange(field, e.target.value)}
-                        placeholder={`Saisir ${field}`}
-                      />
-                    </div>
-                  ))}
+                  {editableFields.map(field => {
+                    const fieldInc = incoherences.find(i => i.field === field);
+                    return (
+                      <div key={field} className={`form-group ${fieldInc ? 'form-group-warning' : ''}`}>
+                        <label htmlFor={field} style={{ textTransform: 'capitalize' }}>
+                          {field.replace(/_/g, ' ')}
+                          {fieldInc && <span className="field-warning" title={fieldInc.message}> ⚠</span>}
+                        </label>
+                        <div className="field-row">
+                          <input
+                            id={field}
+                            type="text"
+                            value={formData[field] || ''}
+                            onChange={(e) => handleChange(field, e.target.value)}
+                            placeholder={`Saisir ${field.replace(/_/g, ' ')}`}
+                          />
+                          {fieldInc?.type === 'client_mismatch' && fieldInc.expectedValue && (
+                            <button
+                              type="button"
+                              className="btn-use-client"
+                              onClick={() => handleFixWithClient(field, fieldInc)}
+                              title={`Utiliser la valeur client : ${fieldInc.expectedValue}`}
+                            >
+                              Valeur client
+                            </button>
+                          )}
+                        </div>
+                        {fieldInc && (
+                          <small className="field-inc-message">{fieldInc.message}</small>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {editableFields.length === 0 && (
+                    <p className="no-fields-message">Tous les champs sont complets et cohérents.</p>
+                  )}
                 </div>
 
                 <div className="form-actions">
                   <button
-                    onClick={() => setSelectedDocument(null)}
+                    onClick={() => { setSelectedDocument(null); setIncoherences([]); }}
                     className="btn-secondary"
                   >
                     Annuler

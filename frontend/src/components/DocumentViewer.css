@@ -175,6 +175,51 @@
   text-align: right;
 }
 
+.data-value-missing {
+  color: #dc3545;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.data-value-warning {
+  color: #d97706;
+}
+
+.warning-triangle {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  vertical-align: middle;
+  cursor: help;
+}
+
+.data-item-warning {
+  border-bottom-color: var(--warning-color, #f59e0b);
+}
+
+.btn-save-data {
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background: var(--primary-color);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save-data:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-save-data:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 1024px) {
   .viewer-container {
     max-width: 100%;
