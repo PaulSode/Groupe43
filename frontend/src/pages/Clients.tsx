@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { clientsAPI } from '../api/client';
 import { Client } from '../types';
 import FicheClient from '../components/FicheClient';
@@ -6,6 +7,8 @@ import ClientViewer from '../components/ClientViewer';
 import './Clients.css';
 
 const Clients: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -17,6 +20,13 @@ const Clients: React.FC = () => {
 
   useEffect(() => { loadClients(); }, []);
   useEffect(() => { filterClientsList(); }, [clients, searchQuery, filterStatus]);
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+      setShowModal(true);
+      setSelectedClient(null);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.openCreateModal, location.pathname, navigate]);
 
   const loadClients = async () => {
     try {

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dashboardAPI } from '../api/client';
 import { DashboardStats } from '../types';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -168,7 +170,10 @@ const Dashboard: React.FC = () => {
         <div className="quick-actions">
           <h3>Actions rapides</h3>
           <div className="actions-list">
-            <button className="action-button">
+            <button
+              className="action-button"
+              onClick={() => navigate('/upload')}
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
@@ -176,7 +181,10 @@ const Dashboard: React.FC = () => {
               </svg>
               Uploader des documents
             </button>
-            <button className="action-button">
+            <button
+              className="action-button"
+              onClick={() => navigate('/clients', { state: { openCreateModal: true } })}
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="8.5" cy="7" r="4"></circle>
@@ -185,7 +193,10 @@ const Dashboard: React.FC = () => {
               </svg>
               Créer un client
             </button>
-            <button className="action-button">
+            <button
+              className="action-button"
+              onClick={() => navigate('/traitement-manuel')}
+            >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="9 11 12 14 22 4"></polyline>
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
