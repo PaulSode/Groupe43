@@ -40,19 +40,6 @@ class ExtractionResult(BaseModel):
     fields: ExtractedFields
 
 
-class Anomaly(BaseModel):
-    severity: str
-    category: str
-    message: str
-    documents: List[str]
-
-
-class VerificationReport(BaseModel):
-    total_documents: int
-    anomalies: List[Anomaly]
-    is_coherent: bool
-
-
 # ─────────────────────────────────────────────
 # Modèles API — Authentification
 # ─────────────────────────────────────────────

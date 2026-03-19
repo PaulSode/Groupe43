@@ -75,11 +75,3 @@ def save_extracted_data(file_id: str, filename: str, doc_type: str,
     }
     result = db["ocr_curated"].insert_one(doc)
     return str(result.inserted_id)
-
-
-def save_verification_report(report: dict) -> str:
-    """Sauvegarde un rapport de vérification inter-documents."""
-    db = get_db()
-    report["created_at"] = datetime.now(timezone.utc)
-    result = db["verification_reports"].insert_one(report)
-    return str(result.inserted_id)

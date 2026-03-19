@@ -7,12 +7,11 @@ import shutil
 import uuid
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from api.models import ExtractionResult, VerificationReport
+from api.models import ExtractionResult
 from ocr.ocr_service import OCRService
 from classifier.classifier import DocumentClassifier
 from extractor.extractor import DataExtractor
-from validator.validator import DocumentValidator
-from datalake.mongo_client import save_raw_document, save_extracted_data, save_verification_report
+from datalake.mongo_client import save_raw_document, save_extracted_data
 
 from auth.auth_service import router as auth_router
 from clients.clients_service import router as clients_router
@@ -43,7 +42,6 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ocr_service = OCRService()
 classifier = DocumentClassifier()
 extractor = DataExtractor()
-validator = DocumentValidator()
 
 
 # ── Endpoints pipeline OCR (existants, inchangés) ─────────────
@@ -97,9 +95,6 @@ async def extract_document(file: UploadFile = File(...), doc_type: str = "auto")
         raise HTTPException(500, f"Erreur lors de l'extraction: {str(e)}")
 
 
-@app.post("/api/verify", response_model=VerificationReport)
-async def verify_documents(documents: List[ExtractionResult]):
-    """Vérifie la cohérence inter-documents."""
-    report = validator.validate(documents)
-    save_verification_report(report.model_dump())
-    return report
+#
+# Endpoint POST /api/verify (ancien système Anomaly/VerificationReport)
+# volontairement supprimé car non utilisé par le frontend actuel.
