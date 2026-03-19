@@ -132,6 +132,7 @@ async def upload_documents(
             detected_type = classifier.classify(raw_text)
             fields = extractor.extract(raw_text, detected_type)
 
+            confidence = float(confidence)
             statut = "processed" if confidence >= 70 else "manual_review"
 
             save_raw_document(file_id, uploaded_file.filename, file_path, raw_text)
@@ -160,7 +161,10 @@ async def upload_documents(
                 cur.execute(f"{_SELECT_DOC} WHERE d.id_document = %s", (inserted["id_document"],))
                 results.append(_row_to_document(cur.fetchone()))
 
-        except Exception:
+        except Exception as e:
+            import traceback
+            print(f"[UPLOAD ERROR] {uploaded_file.filename}: {e}")
+            traceback.print_exc()
             with get_db() as conn:
                 cur = conn.cursor()
                 cur.execute(
@@ -205,6 +209,7 @@ def reprocess_document(doc_id: int, _user: dict = Depends(get_current_user)):
     extractor = DataExtractor()
 
     raw_text, confidence = ocr_service.extract_text_with_confidence(doc["file_path"])
+    confidence = float(confidence)
     detected_type = classifier.classify(raw_text)
     fields = extractor.extract(raw_text, detected_type)
 
